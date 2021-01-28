@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
   <!-- Debug flag -->
   <arg name="debug" default="0"/>
@@ -44,7 +45,7 @@
   </group>
 
   <!-- Publish state and tf for in relation to the world frame -->
-  <include file="$(find uuv_descriptions)/models/common/launch/message_to_tf.launch">
+  <include file="$(find uuv_descriptions)/launch/message_to_tf.launch">
     	<arg name="namespace" value="$(arg namespace)"/>
   </include>
 
