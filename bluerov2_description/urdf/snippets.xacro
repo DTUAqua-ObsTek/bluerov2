@@ -95,4 +95,24 @@
     </gazebo>
 
   </xacro:macro>
+
+  <xacro:macro name="bluerov_camera" params="namespace parent_link suffix *origin">
+    <xacro:regular_camera_plugin_macro
+      namespace="${namespace}"
+      suffix="${suffix}"
+      parent_link="${parent_link}"
+      topic="camera"
+      mass="0.001"
+      update_rate="30"
+      hfov="1.5125"
+      width="1920"
+      height="1080"
+      stddev="0.01"
+      scale="1.0">
+      <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001" />
+      <xacro:insert_block name="origin" />
+    </xacro:regular_camera_plugin_macro>
+  </xacro:macro>
+
+
 </robot>

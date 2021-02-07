@@ -6,40 +6,40 @@
     is created under a namespace, which is per default equal to the name of vehicle model, but
     can be assigned differently at startup
   -->
-
-    <arg name="uuv_name" default="bluerov2"/>
-    <!-- Name of the vehicle model: the name of the robot model -->
-    <arg name="model_name" default="$(arg uuv_name)"/>
-    <!-- Flag to start recoding a rosbag  -->
-    <arg name="record" default="false"/>
-    <!-- Flag to RViz -->
-    <arg name="gui_on" default="false"/>
-    <!-- Flag to NED Referential -->
-   <arg name="use_ned_frame" default="false"/>
-    <!--
+  <arg default="bluerov2" name="uuv_name"/>
+  <!-- Name of the vehicle model: the name of the robot model -->
+  <arg default="$(arg uuv_name)" name="model_name"/>
+  <!-- Flag to start recoding a rosbag  -->
+  <arg default="false" name="record"/>
+  <!-- Flag to RViz -->
+  <arg default="false" name="gui_on"/>
+  <!-- Flag to NED Referential -->
+  <arg default="false" name="use_ned_frame"/>
+  <arg default="false" name="accel_control"/>
+  <arg default="false" name="veloc_control"/>
+  <arg default="false" name="traj_control"/>
+  <!--
     The controller parameters are given below and will be given to the controller node in its
     private namespace. These are vectors and for roslaunch to see this as one argument, there
     can be no spaces between the commas and the floating point values. The default values
     are usually the ones that are going to be used.
     -->
-    <arg name="Kp" default="11993.888,11993.888,11993.888,19460.069,19460.069,19460.069"/>
-    <arg name="Kd" default="9077.459,9077.459,9077.459,18880.925,18880.925,18880.925"/>
-    <arg name="Ki" default="321.417,321.417,321.417,2096.951,2096.951,2096.951"/>
-
-    <arg name="teleop_on" default="false"/>
-    <arg name="joy_id" default="0"/>
-    <arg name="axis_yaw" default="0"/>
-    <arg name="axis_x" default="4"/>
-    <arg name="axis_y" default="3"/>
-    <arg name="axis_z" default="1"/>
-
-    <!-- Thruster manager configuration: thruster allocation matrix pre-calculated with start_thruster_manager.launch (the recomend) -->
-    <arg name="thruster_manager_output_dir" default="$(find bluerov2_control)/config"/>
-    <arg name="thruster_manager_config_file" default="$(find bluerov2_control)/config/thruster_manager.yaml"/>
-    <!-- File containing the thruster allocation matrix -->
-    <arg name="tam_file" default="$(find bluerov2_control)/config/TAM.yaml"/>
-
-     <!-- Start the PID controller with its default parameters for the RexROV vehicle  -->
+  <arg default="11993.888,11993.888,11993.888,19460.069,19460.069,19460.069" name="Kp"/>
+  <arg default="9077.459,9077.459,9077.459,18880.925,18880.925,18880.925" name="Kd"/>
+  <arg default="321.417,321.417,321.417,2096.951,2096.951,2096.951" name="Ki"/>
+  <arg default="false" name="teleop_on"/>
+  <arg default="0" name="joy_id"/>
+  <arg default="2" name="axis_yaw"/>
+  <arg default="1" name="axis_x"/>
+  <arg default="0" name="axis_y"/>
+  <arg default="3" name="axis_z"/>
+  <!-- Thruster manager configuration: thruster allocation matrix pre-calculated with start_thruster_manager.launch (the recomend) -->
+  <arg default="$(find bluerov2_control)/config" name="thruster_manager_output_dir"/>
+  <arg default="$(find bluerov2_control)/config/thruster_manager.yaml" name="thruster_manager_config_file"/>
+  <!-- File containing the thruster allocation matrix -->
+  <arg default="$(find bluerov2_control)/config/TAM.yaml" name="tam_file"/>
+  <group if="$(arg traj_control)">
+    <!-- Start the PID controller with its default parameters for the RexROV vehicle  -->
     <include file="$(find uuv_trajectory_control)/launch/rov_pid_controller.launch">
       <arg name="uuv_name" value="$(arg uuv_name)"/>
       <arg name="gui_on" value="$(arg gui_on)"/>
@@ -52,35 +52,58 @@
       <arg name="thruster_manager_config_file" value="$(arg thruster_manager_config_file)"/>
       <arg name="tam_file" value="$(arg tam_file)"/>
     </include>
-
-    <!-- Initialize the recording fo the simulation according to the record flag  -->
-    <include file="$(find bluerov2_control)/launch/record.launch">
-      <arg name="record" value="$(arg record)"/>
-      <arg name="use_ned_frame" value="$(arg use_ned_frame)"/>
-    </include>
-
     <!-- Joystick teleop node  -->
     <group if="$(arg teleop_on)">
       <!-- Start joystick teleop node  -->
       <include file="$(find uuv_teleop)/launch/uuv_teleop.launch">
-          <arg name="uuv_name" value="$(arg uuv_name)"/>
-          <arg name="joy_id" value="$(arg joy_id)"/>
-          <arg name="output_topic" value="cmd_vel"/>
-          <arg name="message_type" value="twist"/>
-          <arg name="axis_yaw" value="$(arg axis_yaw)"/>
-          <arg name="axis_x" value="$(arg axis_x)"/>
-          <arg name="axis_y" value="$(arg axis_y)"/>
-          <arg name="axis_z" value="$(arg axis_z)"/>
-          <arg name="gain_yaw" default="0.2"/>
-          <arg name="gain_x" default="0.5"/>
-          <arg name="gain_y" default="0.5"/>
-          <arg name="gain_z" default="0.5"/>
+        <arg name="uuv_name" value="$(arg uuv_name)"/>
+        <arg name="joy_id" value="$(arg joy_id)"/>
+        <arg name="output_topic" value="cmd_vel"/>
+        <arg name="message_type" value="twist"/>
+        <arg name="axis_yaw" value="$(arg axis_yaw)"/>
+        <arg name="axis_x" value="$(arg axis_x)"/>
+        <arg name="axis_y" value="$(arg axis_y)"/>
+        <arg name="axis_z" value="$(arg axis_z)"/>
+        <arg default="0.5" name="gain_yaw"/>
+        <arg default="1.0" name="gain_x"/>
+        <arg default="1.0" name="gain_y"/>
+        <arg default="1.0" name="gain_z"/>
       </include>
     </group>
-
-    <!-- RViz  -->
-    <group if="$(arg gui_on)">
-      <!-- Start RViz  -->
-      <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find bluerov2_control)/rviz/bluerov2_control.rviz"/>
+  </group>
+  <group if="$(arg accel_control)">
+    <group ns="$(arg uuv_name)">
+      <rosparam command="load" file="$(find bluerov2_control)/config/inertial.yaml"/>
+      <node name="acceleration_control" output="screen" pkg="uuv_control_cascaded_pid" type="AccelerationControl.py">
+        <param name="tf_prefix" type="string" value="$(arg uuv_name)/"/>
+      </node>
     </group>
+    <include file="$(find bluerov2_control)/launch/start_thruster_manager.launch"/>
+    <group if="$(arg teleop_on)">
+      <include file="$(find uuv_teleop)/launch/uuv_teleop.launch">
+        <arg name="uuv_name" value="$(arg uuv_name)"/>
+        <arg name="joy_id" value="$(arg joy_id)"/>
+        <arg name="output_topic" value="cmd_accel"/>
+        <arg name="message_type" value="accel"/>
+        <arg name="axis_yaw" value="$(arg axis_yaw)"/>
+        <arg name="axis_x" value="$(arg axis_x)"/>
+        <arg name="axis_y" value="$(arg axis_y)"/>
+        <arg name="axis_z" value="$(arg axis_z)"/>
+        <arg default="0.5" name="gain_yaw"/>
+        <arg default="1.0" name="gain_x"/>
+        <arg default="1.0" name="gain_y"/>
+        <arg default="1.0" name="gain_z"/>
+      </include>
+    </group>
+  </group>
+  <!-- Initialize the recording fo the simulation according to the record flag  -->
+  <include file="$(find bluerov2_control)/launch/record.launch">
+    <arg name="record" value="$(arg record)"/>
+    <arg name="use_ned_frame" value="$(arg use_ned_frame)"/>
+  </include>
+  <!-- RViz  -->
+  <group if="$(arg gui_on)">
+    <!-- Start RViz  -->
+    <node args="-d $(find bluerov2_control)/rviz/bluerov2_control.rviz" name="rviz" output="screen" pkg="rviz" type="rviz"/>
+  </group>
 </launch>

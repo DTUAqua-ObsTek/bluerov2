@@ -8,9 +8,10 @@
   <arg name="component_id" default="240"/>
   <arg name="tgt_system" default="1"/>
   <arg name="tgt_component" default="1"/>
-  <arg name="pluginlists_yaml" value="$(find bluerov2_control)/launch/mav_pluginlists.yaml"/>
-  <arg name="config_yaml" value="$(find mavros)/launch/apm_config.yaml"/>
+  <arg name="pluginlists_yaml" value="$(find bluerov2_control)/config/apm_pluginlists.yaml"/>
+  <arg name="config_yaml" value="$(find bluerov2_control)/config/apm_config.yaml"/>
   <arg name="joy_dev" default="/dev/input/js0"/>
+  <arg name="use_joystick" default="true"/>
   <arg name="log_output" default="screen"/>
 
   <arg name="pose2gazebo" default="false"/>
@@ -28,19 +29,21 @@
     <rosparam command="load" file="$(arg config_yaml)"/>
   </node>
 
-  <!-- start the joystick driver -->
-  <node respawn="true" pkg="joy" type="joy_node" name="joy_node">
-    <param name="dev" type="string" value="$(arg joy_dev)" />
-  </node>
+  <group if="$(arg use_joystick)">
+    <include file="$(find bluerov2_control)/launch/switch_pro_teleop.launch">
+      <arg name="joy_dev" value="$(arg joy_dev)"/>
+    </include>
+  </group>
+
+  <group unless="$(arg use_joystick)">
+    <include file="$(find bluerov2_control)/launch/keyboard_teleop.launch">
+    </include>
+  </group>
 
   <node pkg="rosservice" type="rosservice" name="mavros_set_stream" args="call --wait /mavros/set_stream_rate 0 10 1"/>
 
-  <node pkg="bluerov2_control" type="user_mav" name="user_node" output="$(arg log_output)">
-    <param name="video_udp_port" value="$(arg video_udp_port)"/>
-  </node>
-
-  <!-- <group if="$(arg pose2gazebo)">
-    <node pkg="bluerov2_control" type="sitl.py" name="gazebo_sitl" output="$(arg log_output)"/>
-  </group> -->
+  <group if="$(arg pose2gazebo)">
+    <node pkg="bluerov2_control" type="sitl_model_state_publisher.py" name="gazebo_sitl" output="$(arg log_output)"/>
+  </group>
 
 </launch>

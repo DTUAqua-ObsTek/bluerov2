@@ -48,5 +48,4 @@
   <include file="$(find uuv_descriptions)/launch/message_to_tf.launch">
     	<arg name="namespace" value="$(arg namespace)"/>
   </include>
-
 </launch>
