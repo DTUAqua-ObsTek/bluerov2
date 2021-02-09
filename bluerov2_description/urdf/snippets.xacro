@@ -83,7 +83,7 @@
 
        <conversion>
          <type>Basic</type>
-         <rotorConstant>0.00001</rotorConstant>
+         <rotorConstant>0.0001</rotorConstant>
          <!-- <rotorConstant>0</rotorConstant> -->
        </conversion>
 
@@ -113,6 +113,5 @@
       <xacro:insert_block name="origin" />
     </xacro:regular_camera_plugin_macro>
   </xacro:macro>
-
 
 </robot>

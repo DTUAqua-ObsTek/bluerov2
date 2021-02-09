@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <launch>
 
-    <arg name="uuv_name" default="bluerov2"/>
-    <arg name="namespace" default="bluerov2"/>
+    <arg name="uuv_name" default="bluerov2" doc="Name of the robot (leave as bluerov2)"/>
+    <arg name="namespace" default="bluerov2" doc="Namespace of the robot (leave as bluerov2)"/>
 
-    <arg name="use_joystick" default="true"/>
-    <arg name="joy_dev" default="/dev/input/js0"/>
+    <arg name="use_joystick" default="true" doc="Enable Joystick Support"/>
+    <arg name="joy_dev" default="/dev/input/js0" doc="Device Name of Joystick"/>
 
-    <arg name="gazebo" default="false"/>
-    <arg name="gui" default="false"/>
-    <arg name="rviz" default="true"/>
+    <arg name="gazebo" default="false" doc="Enable Gazebo for Camera Visualization (no physics)"/>
+    <arg name="gui" default="false" doc="Enable Gazebo GUI"/>
+    <arg name="rviz" default="false" doc="Enable RViz visualization"/>
 
     <group if="$(arg gazebo)">
         <param name="/use_sim_time" value="true"/>

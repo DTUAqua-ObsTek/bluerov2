@@ -19,9 +19,6 @@
   <!-- World Frame -->
   <arg name="world_frame" default="world"/>
 
-  <!-- <arg name="use_simplified_mesh" default="false"/> -->
-  <!-- <arg name="use_ned_frame" default="false"/> -->
-
   <group ns="$(arg namespace)">
 
     <param name="robot_description"

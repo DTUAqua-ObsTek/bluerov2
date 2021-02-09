@@ -61,3 +61,9 @@ NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Ninte
 	- with joystick: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch`
 
 	- with keyboard: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch use_joystick:=false`
+
+- With Gazebo Camera Simulation
+
+	- with joystick: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch gazebo:=true rviz:=true`
+
+	- with keyboard: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch gazebo:=true rviz:=true use_joystick:=false`
