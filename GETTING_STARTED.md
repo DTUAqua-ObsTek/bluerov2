@@ -25,13 +25,13 @@ You may skip this step if Ubuntu 18.04 is already installed on your machine.
 
 ## Install Ardusub Software-In-The-Loop ##
 
-- SITL: Follow the installation instructions [Starting Here, and Be Sure to Follow Links](https://ardupilot.org/dev/docs/setting-up-sitl-on-linux.html)´.
-	- NOTES: Follow "Cloning with the command line" section for minimum fuss. When moving on to [BUILD.md](https://github.com/ArduPilot/ardupilot/blob/master/BUILD.md) section, you do not have to clone ardupilot again. 
+- SITL: Follow the installation instructions [Starting Here, and Be Sure to Follow Links](https://ardupilot.org/dev/docs/setting-up-sitl-on-linux.html).
+	- NOTE: Follow "Cloning with the command line" section for minimum fuss. When moving on to the [BUILD.md](https://github.com/ArduPilot/ardupilot/blob/master/BUILD.md) section, you do not have to clone ardupilot again. 
 	
 - ArduSub Configuration: run 
 
-´´´./waf configure --board sitl
-./waf sub´´´
+`./waf configure --board sitl
+./waf sub`
 
 ## Install QGroundControl ##
 
@@ -39,7 +39,7 @@ You may skip this step if Ubuntu 18.04 is already installed on your machine.
 
 ## Test ArduSub SITL and QGroundControl ##
 
-NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Nintendo Switch Pro, Playstation etc.)
+NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Nintendo Switch Pro, Playstation etc.), or a joystick-keyboard emulator for linux such as [QJoyPad](http://qjoypad.sourceforge.net/)
 
 - ArduSub SITL: Follow the instructions [Here](https://www.ardusub.com/developers/sitl.html) and launch a SITL simulation.
 - QGroundControl: Double Click on APP, configure joystick.
@@ -53,7 +53,11 @@ NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Ninte
 
 - Launch an instance of ArduSub simulation
 
-	´´´cd ardupilot/ArduSub
-	simvehicle.py -L RATBeach --map --console´´´
+	`cd ardupilot/ArduSub
+	sim_vehicle.py -L RATBeach --map --console`
 
-- Launch the MAVROS
+- Launch MAVROS 
+
+	- with joystick: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch`
+
+	- with keyboard: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch use_joystick:=false`
