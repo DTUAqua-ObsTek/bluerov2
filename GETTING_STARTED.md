@@ -30,8 +30,9 @@ You may skip this step if Ubuntu 18.04 is already installed on your machine.
 	
 - ArduSub Configuration: run 
 
-`./waf configure --board sitl
-./waf sub`
+`./waf configure --board sitl`
+
+`./waf sub`
 
 ## Install QGroundControl ##
 
@@ -53,8 +54,9 @@ NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Ninte
 
 - Launch an instance of ArduSub simulation
 
-	`cd ardupilot/ArduSub
-	sim_vehicle.py -L RATBeach --map --console`
+	`cd ardupilot/ArduSub`
+	
+	`sim_vehicle.py -L RATBeach --map --console`
 
 - Launch MAVROS 
 
