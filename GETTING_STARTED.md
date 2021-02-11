@@ -20,8 +20,9 @@ You may skip this step if Ubuntu 18.04 is already installed on your machine.
 	- NOTE: replace "kinetic" with "melodic" in the apt-get install commands. 
 	- NOTE: Make sure to install the GeographicLib datasets after installing mavros! You will have to execute ´´´sudo ./install_geographiclib_datasets.sh"´´´
 - BlueROV2 Gazebo and ArduSub Modelling
-	1. Follow instructions to create a new ROS workspace [Here (choose Melodic)](http://wiki.ros.org/catkin/Tutorials/create_a_workspace). 
-	2. Follow instructions to install the BlueROV2 Gazebo Package [here](https://github.com/FletcherFT/bluerov2).
+	1. Follow instructions to create a new ROS workspace [Here (choose Melodic)](http://wiki.ros.org/catkin/Tutorials/create_a_workspace).
+	2. Clone this repository into your workspace's src directory (called `catkin_ws/src` in this guide) `git clone https://github.com/FletcherFT/bluerov2.git`
+	3. Execute `catkin_make` in the top-level directory of `catkin_ws`.
 
 ## Install Ardusub Software-In-The-Loop ##
 
