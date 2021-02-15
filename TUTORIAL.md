@@ -21,7 +21,9 @@ In a new terminal, explore the topics currently available.
 `rostopic list`
 
 **/hydrodynamics/current_velocity**: the world referenced current.
+
 **/gazebo/model_states**: pose and velocity of any models in the simulation.
+
 **/gazebo/link_states**: pose and velocity of any links in the simulation.
 
 ## Spawning a BlueROV2 ##
@@ -62,6 +64,7 @@ At this point, you are able to publish thrust messages to each of the thrusters 
 First, pause the simulation and delete the model.
 
 `rosservice call /gazebo/pause_physics`
+
 `rosservice call /gazebo/delete_model "model_name: 'bluerov2'"`
 
 If your gazebo GUI crashes at this point, you can restart it by running `gzclient` in a terminal.
