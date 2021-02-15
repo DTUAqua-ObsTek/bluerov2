@@ -6,7 +6,7 @@
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="worlds/herkules_ship_wreck.world"/>
-    <arg name="paused" value="false"/>
+    <arg name="paused" value="$(arg paused)"/>
     <arg name="gui" value="$(arg gui)"/>
     <arg name="headless" value="false"/>
     <arg name="debug" value="false"/>
