@@ -79,12 +79,12 @@
         </visual>
 
         <!-- In rexrov2_base they made collision planes to minize the GPU load -->
-        <!-- <collision>
+        <collision>
           <origin xyz="0 0 0" rpy="0 0 0"/>
           <geometry>
             <mesh filename="${collision_mesh_file}" scale="1 1 1" />
           </geometry>
-        </collision> -->
+        </collision>
 
       </link>
 

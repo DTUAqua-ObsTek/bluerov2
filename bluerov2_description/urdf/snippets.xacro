@@ -116,19 +116,19 @@
     
 
   <xacro:macro name="bluerov_altimeter"
-    params="namespace suffix parent_link topic mass update_rate
-      samples fov *origin">
+    params="namespace suffix parent_link *origin">
     <!-- Sensor link -->
     <link name="${namespace}/altimeter${suffix}_link">
       <inertial>
         <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001" />
-        <mass value="${mass}" />
-        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="0.01" />
+        <origin xyz="0 0 0" rpy="0 0 0"/>
       </inertial>
       <visual>
         <geometry>
-          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/oe14-372.dae" scale="1 1 1"/>
+          <mesh filename="file://$(find bluerov2_description)/meshes/ping1d.dae" scale="1 1 1"/>
         </geometry>
+        <origin xyz="0 0 0" rpy="0 0 -${0.5*pi}"/>
       </visual>
       <xacro:no_collision/>
     </link>
@@ -143,21 +143,21 @@
 
     <gazebo reference="${namespace}/altimeter${suffix}_link">
       <sensor type="ray" name="sonar">
-          <pose>0.25 0 0 0 0 0</pose>
-          <update_rate>"${update_rate}"</update_rate>
+          <pose>0 0 0 0 0 0</pose>
+          <update_rate>15.0</update_rate>
           <ray>
             <scan>
               <horizontal>
-                <samples>"${samples}"</samples>
-                <resolution>1.0</resolution>
-                <min_angle>-0.25</min_angle>
-                <max_angle>0.25</max_angle>
+                <samples>5.0</samples>
+                <resolution>1</resolution>
+                <min_angle>-${15*pi/180}</min_angle>
+                <max_angle>${15*pi/180}</max_angle>
               </horizontal>
               <vertical>
-                <samples>"${samples}"</samples>
+                <samples>5.0</samples>
                 <resolution>1</resolution>
-                <min_angle>-0.25</min_angle>
-                <max_angle>0.25</max_angle>
+                <min_angle>-${15*pi/180}</min_angle>
+                <max_angle>${15*pi/180}</max_angle>
               </vertical>
             </scan>
             <range>
@@ -169,10 +169,10 @@
           <plugin filename="libgazebo_ros_range.so" name="gazebo_ros_range">
             <gaussianNoise>0.005</gaussianNoise>
             <alwaysOn>true</alwaysOn>
-            <updateRate>"${update_rate}"</updateRate>
-            <topicName>"${topic}"</topicName>
-            <frameName>"altimeter${suffix}_link"</frameName>
-            <fov>"${fov}"</fov>
+            <updateRate>15.0</updateRate>
+            <topicName>altimeter${suffix}</topicName>
+            <frameName>${namespace}/altimeter${suffix}_link</frameName>
+            <fov>${30*pi/180}</fov>
             <radiation>ultrasound</radiation>
           </plugin>
         </sensor>
