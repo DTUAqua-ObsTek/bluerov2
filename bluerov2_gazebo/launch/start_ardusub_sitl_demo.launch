@@ -17,7 +17,7 @@
             <arg name="gui" value="$(arg gui)"/>
         </include>
 
-        <include file="$(find bluerov2_description)/launch/upload_bluerov2.launch">
+        <include file="upload.launch">
             <arg name="namespace" value="$(arg namespace)"/>
             <arg name="x" value="0"/>
             <arg name="y" value="0"/>

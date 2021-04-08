@@ -29,7 +29,7 @@
   The original values, [0.0822, -0.00773, 0.3872] however, seem to
   assume NWU (otherwise cob is below cog?). 0.155
   -->
-  <xacro:property name="cob" value="0 0 0"/>
+  <xacro:property name="cob" value="0 0 0.3872"/>
   <!-- Fluid density -->
   <xacro:property name="rho" value="1028"/>
   <!--
