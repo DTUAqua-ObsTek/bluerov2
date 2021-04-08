@@ -1,0 +1,20 @@
+<launch>
+    <arg name="robot_name" default="bluerov2"/>
+    <arg name="neptus_addr" default="127.0.0.1"/>
+    <arg name="bridge_addr" default="127.0.0.1"/>
+    <arg name="bridge_port" default="6002"/>
+    <arg name="node_name" default="imc_bridge"/>
+    <arg name="imc_system_name" default="00-bluerov2-1"/>
+    <arg name="imc_id" default="8"/>
+    <arg name="imc_src" default="$(arg imc_id)"/>
+
+    <node pkg="imc_ros_bridge" type="bridge_node" name="$(arg node_name)" output="log" ns="imc">
+        <param name="neptus_addr" value="$(arg neptus_addr)"/>
+        <param name="bridge_addr" value="$(arg bridge_addr)"/>
+        <param name="bridge_port" value="$(arg bridge_port)" type="str"/>
+        <param name="system_name" value="$(arg imc_system_name)"/>
+        <param name="imc_id" value="$(arg imc_id)"/>
+        <param name="imc_src" value="$(arg imc_src)"/>
+        <remap from="gps_fix" to="gps"/>
+    </node>
+</launch>
