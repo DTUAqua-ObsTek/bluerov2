@@ -180,4 +180,61 @@
 
   </xacro:macro>
 
+  <xacro:macro name="bluerov2_sss"
+    params="namespace suffix parent_link topic mass update_rate
+      samples fov range_min range_max range_stddev mesh
+      *inertia *origin *visual">
+    <!-- Sensor link -->
+    <link name="${namespace}/sonar${suffix}_link">
+      <inertial>
+        <xacro:insert_block name="inertia" />
+        <mass value="${mass}" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
+      </inertial>
+
+      <xacro:insert_block name="visual" />
+      <xacro:no_collision/>
+    </link>
+
+  <joint name="${namespace}_sonar${suffix}_joint" type="revolute">
+    <xacro:insert_block name="origin" />
+    <parent link="${parent_link}" />
+    <child link="${namespace}/sonar${suffix}_link" />
+    <limit upper="0" lower="0" effort="0" velocity="0" />
+    <axis xyz="1 0 0"/>
+  </joint>
+
+  <gazebo reference="${namespace}/sonar${suffix}_link">
+    <sensor type="ray" name="sonar${suffix}">
+      <pose>0 0 0 0 0 0</pose>
+      <visualize>true</visualize>
+      <update_rate>${update_rate}</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>${samples}</samples>
+            <resolution>1</resolution>
+            <min_angle>-${0.5*fov}</min_angle>
+            <max_angle>${0.5*fov}</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>${range_min}</min>
+          <max>${range_max}</max>
+          <resolution>0.01</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>${range_stddev}</stddev>
+        </noise>
+      </ray>
+      <plugin name="sonar${suffix}_controller" filename="libgazebo_ros_laser.so">
+        <topicName>${topic}${suffix}</topicName>
+        <frameName>sonar${suffix}_link</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
+  </xacro:macro>
+
 </robot>

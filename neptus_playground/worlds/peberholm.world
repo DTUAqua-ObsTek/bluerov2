@@ -81,7 +81,7 @@
     <!-- Seabed terrain around Munkholmen model -->
     <include>
       <uri>model://herkules_seabed</uri>
-      <pose>0 0 0 0 0 0</pose>
+      <pose>0 0 54 0.0349066 0 0</pose>
     </include>
 
     <plugin name="underwater_current_plugin" filename="libuuv_underwater_current_ros_plugin.so">
@@ -118,7 +118,7 @@
 
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>-25 25 -55 0 0 -0.8</pose>
+        <pose frame=''>-25 25 -5 0 0 -0.8</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
