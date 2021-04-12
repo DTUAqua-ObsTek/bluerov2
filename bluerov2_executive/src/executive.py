@@ -80,7 +80,7 @@ class ImcInterface(object):
                 wp.use_fixed_heading = False
                 wp.heading_offset = 0.0
                 wps.append(wp)
-        # If datum is not given, then reference frame is ENU UTM
+        # If datum is not given, then reference frame is ENU UTM TODO: LOOKUP TRANSFORM
         else:
             for point, speed in zip(points, speeds):
                 wp = Waypoint()

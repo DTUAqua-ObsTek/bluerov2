@@ -5,7 +5,7 @@ from uuv_control_msgs.srv import InitWaypointSet, InitWaypointSetRequest, InitWa
 from uuv_control_msgs.msg import Waypoint
 from bluerov2_control.srv import ConvertGeoPointsRequest, ConvertGeoPoints
 from geographic_msgs.msg import GeoPoint
-from std_msgs.msg import String
+from std_msgs.msg import String, Time
 from tf2_ros import Buffer, TransformListener
 import sys
 import os
@@ -39,26 +39,30 @@ def get_request(mis):
     p = rospy.ServiceProxy("convert_points", ConvertGeoPoints)
     p.wait_for_service()
     res = p(req)
+    print req.geopoints
     buff = Buffer()
     TransformListener(buff)
     tf = buff.lookup_transform("world", "utm", rospy.Time.now(), rospy.Duration.from_sec(5.0))
-    print(tf)
-    req = InitWaypointSetRequest()
-    req.interpolator = String("lipb")
-    req.start_now = True
     wps = []
     for point, heading, speed in zip(res.utmpoints, headings, speeds):
         wp = Waypoint()
+        wp.point.x = point.x + tf.transform.translation.x
+        wp.point.y = point.y + tf.transform.translation.y
+        wp.point.z = -point.z
         wp.header.stamp = rospy.Time.now()
-        wp.header.frame_id = "world_ned"
-        wp.max_forward_speed = max(speeds)
-        wp.point.x = point.y + tf.transform.translation.y
-        wp.point.y = point.x + tf.transform.translation.x
-        wp.point.z = point.z + tf.transform.translation.z
-        wp.heading_offset = heading
-        wp.use_fixed_heading = True
-        wp.radius_of_acceptance = 2.5
+        wp.header.frame_id = "world"
+        wp.radius_of_acceptance = 3.0
+        wp.max_forward_speed = speed
+        wp.use_fixed_heading = False
+        wp.heading_offset = 0.0
         wps.append(wp)
+    req = InitWaypointSetRequest()
+    req.start_time = Time(rospy.Time.from_sec(0))
+    req.start_now = True
+    req.waypoints = wps
+    req.max_forward_speed = max(speeds)
+    req.interpolator = String("lipb")
+    req.heading_offset = 0
     req.max_forward_speed = max(speeds)
     req.waypoints = wps
     return req
@@ -78,9 +82,9 @@ if __name__=="__main__":
 
     rospy.init_node("set_iver_waypoints")
     req = get_request(mission_filename)
-    print req
     proxy = rospy.ServiceProxy("start_waypoint_list", InitWaypointSet)
     proxy.wait_for_service()
+    print req
     res = proxy(req)
     if res.success:
         rospy.loginfo("IVER Waypoints Set, Executing.")
