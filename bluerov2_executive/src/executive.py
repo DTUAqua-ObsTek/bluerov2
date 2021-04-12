@@ -68,7 +68,7 @@ class ImcInterface(object):
         req.geopoints = geopoints
         points = self._geo_converter.call(req).utmpoints
         wps = []
-        # TODO Speed is None?
+        # If datum is available, then reference frame is ENU World
         if self._datum is not None:
             for point, speed in zip(points[:-1],speeds):
                 wp = Waypoint()
@@ -80,6 +80,7 @@ class ImcInterface(object):
                 wp.use_fixed_heading = False
                 wp.heading_offset = 0.0
                 wps.append(wp)
+        # If datum is not given, then reference frame is ENU UTM
         else:
             for point, speed in zip(points, speeds):
                 wp = Waypoint()
@@ -87,7 +88,7 @@ class ImcInterface(object):
                 wp.point.y = point.y
                 wp.point.z = -point.z
                 wp.header.stamp = rospy.Time.now()
-                wp.header.frame_id = "world"
+                wp.header.frame_id = "utm"
                 wp.radius_of_acceptance = 3.0
                 wp.max_forward_speed = speed
                 wp.use_fixed_heading = False

@@ -15,4 +15,7 @@
     <include file="$(find bluerov2_executive)/launch/bluerov2_executive.launch">
         <arg name="datum" value="[55.603036,12.8089368,0.0]"/>
     </include>
+    <node pkg="bluerov2_control" type="utm_to_world.py" name="utm_to_world" ns="bluerov2">
+        <param name="datum" value="[55.603036,12.8089368,0.0]"/>
+    </node>
 </launch>
