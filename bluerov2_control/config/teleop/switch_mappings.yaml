@@ -2,7 +2,8 @@ mappings:
   axes:
     - axes[1]
     - axes[0] * -1.0
-    - axes[3] * 0.5 + 0.5
+#    - axes[3] * 0.5 + 0.5
+    - axes[3]
     - axes[2] * -1.0
     
   buttons:

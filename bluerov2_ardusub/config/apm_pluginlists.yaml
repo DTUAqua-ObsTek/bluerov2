@@ -5,23 +5,17 @@ plugin_blacklist:
 - adsb
 - altitude
 - cam_imu_sync
-
 - companion_process_status
 - debug_value
-
 - esc_status
 - fake_gps
 - ftp
-
 - gps_rtk
 - gps_status
 - hil
 - home_position
-
 - landing_target
-
 - log_transfer
-
 - mocap_pose_estimate
 - mount_control
 - obstacle_distance
@@ -30,11 +24,10 @@ plugin_blacklist:
 - param
 - play_tune
 - px4flow
+- rangefinder
 
-- rc_io
 - safety_area
 - setpoint_*
-
 - trajectory
 - vf4_hud
 - vibration
@@ -44,5 +37,6 @@ plugin_blacklist:
 - wind_estimation
 
 
-plugin_whitelist: []
-#- 'sys_*'
+plugin_whitelist:
+- 'sys_*'
+- rc_io

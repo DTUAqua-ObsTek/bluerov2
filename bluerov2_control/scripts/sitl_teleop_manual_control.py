@@ -20,9 +20,9 @@ class SITLTeleop(object):
 
         self.man = ManualControl()
         self.man.z = 500.0
-        self.pub = rospy.Publisher("/mavros/manual_control/send", ManualControl, queue_size=10)
+        self.pub = rospy.Publisher("mavros/manual_control/send", ManualControl, queue_size=10)
 
-        rospy.Subscriber('/joy', Joy, self.joy_callback)
+        rospy.Subscriber('joy', Joy, self.joy_callback)
 
     def load_mappings(self):
         return rospy.get_param("~mappings", {})

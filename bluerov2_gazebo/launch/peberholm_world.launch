@@ -4,7 +4,7 @@
   <arg name="use_world_ned_frame" default="true"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find neptus_playground)/worlds/peberholm.world"/>
+    <arg name="world_name" value="$(find bluerov2_gazebo)/worlds/peberholm.world"/>
     <arg name="paused" value="$(arg paused)"/>
     <arg name="gui" value="$(arg gui)"/>
     <arg name="headless" value="false"/>

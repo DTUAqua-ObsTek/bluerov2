@@ -45,21 +45,21 @@ cmd:
 
 # global_position
 global_position:
-  frame_id: "world"             # origin frame
-  child_frame_id: bluerov2/base_link" # body-fixed frame
-  rot_covariance: 99999.0   # covariance for attitude?
+  frame_id: "bluerov2/odom"             # origin frame
+  child_frame_id: "bluerov2/base_link" # body-fixed frame
+  rot_covariance: 0.01   # covariance for attitude?
   gps_uere: 1.0             # User Equivalent Range Error (UERE) of GPS sensor (m)
   use_relative_alt: true    # use relative altitude for local coordinates
   tf:
     send: false               # send TF?
-    frame_id: "world"  # TF frame_id
-    global_frame_id: "world"  # TF earth frame_id
+    frame_id: "bluerov2/odom"  # TF frame_id
+    global_frame_id: "bluerov2/odom"  # TF earth frame_id
     child_frame_id: "bluerov2/base_link" # TF child_frame_id
 
 # imu_pub
 imu:
   frame_id: "bluerov2/base_link"
-  # need find actual values
+  # need find actual values ( can find by sitting on desk and recording for a few mins)
   linear_acceleration_stdev: 0.0003
   angular_velocity_stdev: 0.0003490659 // 0.02 degrees
   orientation_stdev: 1.0
@@ -67,10 +67,10 @@ imu:
 
 # local_position
 local_position:
-  frame_id: "map"
+  frame_id: "bluerov2/odom"
   tf:
     send: false
-    frame_id: "map"
+    frame_id: "bluerov2/odom"
     child_frame_id: "bluerov2/base_link"
     send_fcu: false
 
