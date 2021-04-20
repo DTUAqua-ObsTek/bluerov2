@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="ip" default="192.168.2.94"/>
+	<arg name="port" default="80"/>
+	<node name="waterlinked_gps" pkg="waterlinked_gps" type="waterlinked_gps_node.py" output="screen">
+		<param name="ip" type="string" value="$(arg ip)"/>
+		<param name="port" type="string" value="$(arg port)"/>
+	</node>
+</launch>

@@ -1,0 +1,350 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"saf",
+				"safety_ros_pkg"
+			],
+			[
+				"mo",
+				"mode"
+			],
+			[
+				"arg",
+				"args"
+			],
+			[
+				"tel",
+				"teleop_ros_pkg"
+			],
+			[
+				"over",
+				"overrideDF"
+			],
+			[
+				"battery",
+				"batteryDF"
+			],
+			[
+				"ove",
+				"overrideDF"
+			],
+			[
+				"li",
+				"light"
+			],
+			[
+				"compress",
+				"compression_quality"
+			],
+			[
+				"compre",
+				"compression_quality"
+			],
+			[
+				"joy",
+				"joy_port"
+			],
+			[
+				"se",
+				"set_weight"
+			],
+			[
+				"acti",
+				"action_library"
+			],
+			[
+				"b",
+				"bluerov_ffg"
+			],
+			[
+				"Emp",
+				"EmptyRequest"
+			],
+			[
+				"Wo",
+				"WorldStepGazeboPlugin"
+			],
+			[
+				"p",
+				"pose"
+			],
+			[
+				"n",
+				"newState"
+			],
+			[
+				"t",
+				"true"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 413.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/fft/REMORA_ws/src"
+	],
+	"file_history":
+	[
+		"/home/fft/REMORA_ws/src/safety_ros_pkg/src/safety.cpp",
+		"/home/fft/REMORA_ws/src/sentinel_control_msgs/package.xml",
+		"/home/fft/REMORA_ws/src/sentinel_bringup/launch/sentinel-bringup-remote-core.launch",
+		"/home/fft/REMORA_ws/src/sentinel_bringup/envs/remote-host-env.sh",
+		"/home/fft/REMORA_ws/src/sentinel_bringup/params/waterlinked_gps.yaml",
+		"/home/fft/REMORA_ws/src/sentinel_bringup/launch/sentinel_bringup.launch",
+		"/home/fft/REMORA_ws/src/remora_bringup/launch/sentinel_bringup.launch",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/scripts/sentinelbagconversion.py",
+		"/home/fft/sentinel/csvout/2018-06-08-11-37-48/fcu-state_2018-06-08-11-37-48.csv",
+		"/media/fft/Samsung T3/sentinel/2018-06-01-16-53-55/flightdata_filtered_2018-06-01-16-53-55.csv",
+		"/home/fft/sentinel/csvout/2018-06-08-11-35-06/rcoverride_2018-06-08-11-35-06.csv",
+		"/home/fft/sentinel/csvout/2018-06-08-11-35-06/battery_2018-06-08-11-35-06.csv",
+		"/home/fft/sentinel/csvout/turbidity.csv",
+		"/home/fft/sentinel/csvout/gps.csv",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/params/sentinelekf.yaml",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/scripts/gps_acoustic_markers.py",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/launch/testekf.launch",
+		"/home/fft/REMORA_ws/src/safety_ros_pkg/launch/safety.launch",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/params/testekf.yaml",
+		"/home/fft/REMORA_ws/src/teleop_ros_pkg/launch/teleop_logitech.launch",
+		"/home/fft/REMORA_ws/src/remora_bringup/launch/rc_sentinel.launch",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/launch/trajviz.launch",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/scripts/odom2basetfbroadcast.py",
+		"/home/fft/REMORA_ws/src/teleop_ros_pkg/src/joystick_remapper.cpp",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/scripts/convertbags.sh",
+		"/home/fft/REMORA_ws/src/teleop_ros_pkg/scripts/joystick_remapper.py",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/launch/firstJuneCsvConversion.launch",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/scripts/flightdata2csv.py",
+		"/media/fft/Samsung T3/sentinel/2018-06-01-17-27-20/flightdata_filtered_2018-06-01-17-27-20.csv",
+		"/home/fft/flightdata.csv",
+		"/home/fft/test.csv",
+		"/home/fft/REMORA_ws/src/teleop_ros_pkg/src/teleop_joy_new.cpp",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/scripts/fixbags.sh",
+		"/home/fft/REMORA_ws/src/data_prep_pkg/launch/firstJuneFixups.launch",
+		"/home/fft/REMORA_ws/src/remora_bringup/launch/test_recording.launch",
+		"/home/fft/REMORA_ws/src/teleop_ros_pkg/package.xml",
+		"/home/fft/REMORA_ws/src/teleop_ros_pkg/CMakeLists.txt",
+		"/home/fft/REMORA_ws/src/waterlinked_gps/launch/uwgps-bringup.launch",
+		"/home/fft/REMORA_ws/src/safety_ros_pkg/package.xml",
+		"/home/fft/REMORA_ws/src/safety_ros_pkg/CMakeLists.txt",
+		"/home/fft/REMORA_ws/src/waterlinked_gps/scripts/waterlinked_gps_node.py",
+		"/home/fft/REMORA_ws/src/bringup_waterlink.sh",
+		"/home/fft/REMORA_ws/src/waterlinked_gps_msgs/package.xml",
+		"/home/fft/GOAPy/test.py",
+		"/home/fft/GOAPy/remorabrain.py",
+		"/home/fft/GOAPy/babygoap.py",
+		"/home/fft/GOAPy/goapy.py",
+		"/home/fft/GOAPy/advanced_example.py",
+		"/home/fft/ROS_ws/src/auv_framework/auv_sim/scripts/rviz_render.py",
+		"/home/fft/ROS_ws/src/bluerov_ffg/urdf/brov.xacro",
+		"/home/fft/ROS_ws/src/bluerov_ffg/urdf/brov.bak",
+		"/home/fft/ROS_ws/src/auv_framework/auv_sim/urdf/brov.xacro",
+		"/home/fft/ROS_ws/src/auv_framework/auv_sim/world/underwater.world",
+		"/home/fft/ROS_ws/src/auv_framework/auv_sim/terrain/monopiles/terrain.sdf",
+		"/home/fft/ROS_ws/src/auv_framework/auv_sim/launch/main.launch",
+		"/home/fft/ROS_ws/src/world_step/src/world_step_gazebo.cpp",
+		"/home/fft/ROS_ws/src/auv_framework/auv_sim/scripts/quat2eul.py",
+		"/home/fft/RL_workspace/fakegym.py",
+		"/home/fft/ROS_ws/src/world_step/include/world_step/world_step_gazebo.h",
+		"/home/fft/ROS_ws/src/freefloating_gazebo/src/freefloating_pids.cpp",
+		"/home/fft/ROS_ws/src/freefloating_gazebo/include/freefloating_gazebo/freefloating_pids.h",
+		"/home/fft/ROS_ws/src/freefloating_gazebo/src/freefloating_pids_main.cpp",
+		"/home/fft/ROS_ws/src/freefloating_gazebo/src/freefloating_pids_body.cpp",
+		"/home/fft/ROS_ws/src/freefloating_gazebo/include/freefloating_gazebo/freefloating_gazebo_fluid.h",
+		"/home/fft/ROS_ws/src/freefloating_gazebo/src/freefloating_gazebo_fluid.cpp",
+		"/home/fft/ROS_ws/src/CMakeLists.txt",
+		"/home/fft/ROS_ws/src/world_step/include/world_step/worldstepgazebo.h",
+		"/home/fft/ROS_ws/src/world_step/src/world_step_service.cpp",
+		"/home/fft/ROS_ws/src/world_step/include/worldstepgazebo.h",
+		"/home/fft/ROS_ws/src/world_step/CMakeLists.txt",
+		"/home/fft/ROS_ws/src/world_step/src/plugins/world_step.cc",
+		"/home/fft/auv_env_emulator.py",
+		"/home/fft/ROS_ws/src/asv_framework/asv_control/src/asv_control/dynamic_positioning.py",
+		"/home/fft/ROS_ws/src/asv_framework/asv_control/src/asv_control/nav_sim.py",
+		"/home/fft/ROS_ws/src/auv_framework/auv_sim/scripts/pauseunpause.py",
+		"/home/fft/ROS_ws/src/auv_framework/auv_sim/params/reinforcement.yaml",
+		"/home/fft/Documents/title&abstract23112017Fletcher.txt",
+		"/home/fft/ROS_ws/src/auv_framework/auv_sim/launch/brov.launch",
+		"/home/fft/ROS_ws/src/auv_framework/auv_sim/launch/env.launch",
+		"/home/fft/ROS_ws/src/bluerov_ffg/urdf/brov_dummy.urdf",
+		"/home/fft/ROS_ws/src/bluerov_ffg/launch/brov.launch",
+		"/home/fft/ROS_ws/src/bluerov_ffg/config/brov.yaml"
+	],
+	"find":
+	{
+		"height": 42.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"machine",
+			"config",
+			"joyCa",
+			"rc_override_pub",
+			"mode",
+			"camera_tilt",
+			"xbox_pub",
+			"_state",
+			"state",
+			"_action_library",
+			"action_library",
+			"_cleanactions",
+			"_cleana",
+			"_clean_b",
+			"_clean_br",
+			"clean",
+			"_cleanact",
+			"_clean",
+			"_clean_brain",
+			"remora"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 29.0
+	},
+	"input":
+	{
+		"height": 42.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "REMORA_ws.sublime-project",
+	"replace":
+	{
+		"height": 54.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"~/RL_workspace/rltesting.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 358.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
