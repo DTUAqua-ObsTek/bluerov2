@@ -53,13 +53,11 @@ NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Ninte
 
 ## Test ArduSub SITL and MAVROS ##
 
-** NOTE, this is still a work in progress, Gazebo and ardusub like to fight over the /tf **
+** NOTE, this is still a work in progress, the base_link -> thruster TFs are a little strange for some reason but this is purely cosmetic.**
 
 - Launch an instance of ArduSub simulation
 
-	`cd ardupilot/ArduSub`
-	
-	`sim_vehicle.py -L RATBeach --map --console`
+	`sim_vehicle.py -v ArduSub -l 55.60304,12.808937,0,0 --map --console`
 
 - Launch MAVROS 
 

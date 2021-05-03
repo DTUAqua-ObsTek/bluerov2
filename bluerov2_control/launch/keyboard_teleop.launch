@@ -9,9 +9,9 @@
 	<node pkg="joy" type="joy_remap.py" name="joy_remap_node" output="screen">
 		<remap from="joy_in" to="joy_orig"/>
 		<remap from="joy_out" to="joy"/>
-		<rosparam command="load" file="$(find bluerov2_control)/config/key_joy_mappings.yaml"/>
+		<rosparam command="load" file="$(find bluerov2_control)/config/teleop/key_joy_mappings.yaml"/>
 	</node>
 	<node pkg="bluerov2_control" type="sitl_teleop_manual_control.py" name="teleop_node">
-		<rosparam command="load" file="$(find bluerov2_control)/config/key_joy_command_mappings.yaml"/>
+		<rosparam command="load" file="$(find bluerov2_control)/config/teleop/key_joy_command_mappings.yaml"/>
 	</node>
 </launch>

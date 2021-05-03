@@ -29,6 +29,9 @@
     <group if="$(arg use_joystick)">
         <include file="$(find bluerov2_control)/launch/switch_pro_teleop.launch" ns="bluerov2"/>
     </group>
+    <group unless="$(arg use_joystick)" ns="bluerov2">
+        <include file="$(find bluerov2_control)/launch/keyboard_teleop.launch"/>
+    </group>
 
     <node type="rviz" pkg="rviz" name="rviz" args="-d $(find bluerov2_ardusub)/rviz/bluerov2_ardusub.rviz"/>
     <node type="fake_waterlink.py" pkg="bluerov2_state_estimation" name="fake_waterlink" ns="bluerov2" output="screen">
