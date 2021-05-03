@@ -19,7 +19,7 @@
             <arg name="latitude" value="55.603036"/>
             <arg name="longitude" value="12.8089368"/>
             <arg name="depth" value="-1"/>
-            <arg name="use_ned_frame" value="true"/>
+            <arg name="use_ned_frame" value="false"/>
             <arg name="mode" value="$(arg mode)"/>
             <arg name="gazebo_tf" value="false"/>
         </include>
