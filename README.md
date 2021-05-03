@@ -17,7 +17,8 @@ This repository is intended as introductory marine vehicle simulation software f
 
 ## Getting Started ## 
 
-The repository was built and tested on a fresh installation of Ubuntu 18.04. The [Getting Started Guide](GETTING_STARTED.md) will assist with installation of dependencies and testing.
+The repository was built and tested on a fresh installation of Ubuntu 18.04. The [Getting Started Guide](GETTING_STARTED.md) will assist with installation of dependencies and testing. 
+Tutorials [01](TUTORIAL-01.md) and [08](TUTORIAL-08.md) are intended for students enrolled in Autonomous Marine Robotics special course at DTU. The [simulation tutorial](SIMULATION_TUTORIAL.md) gives a quick start guide for people interested in using the simulations.
 
 ## Additional Links ##
 
