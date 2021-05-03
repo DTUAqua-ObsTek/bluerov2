@@ -12,7 +12,7 @@
   <arg name="config_yaml" value="$(find bluerov2_ardusub)/config/apm_config.yaml"/>
   <arg name="log_output" default="screen"/>
 
-  <arg name="pose2gazebo" default="false"/>
+  <arg name="gazebo" default="false"/>
 
   <node ns="bluerov2" pkg="mavros" type="mavros_node" name="mavros" required="true" clear_params="true" output="$(arg log_output)">
     <param name="fcu_url" value="$(arg fcu_url)"/>
@@ -25,6 +25,9 @@
     <!-- load blacklist, config -->
     <rosparam command="load" file="$(arg pluginlists_yaml)"/>
     <rosparam command="load" file="$(arg config_yaml)"/>
+  </node>
+
+  <node pkg="bluerov2_control" type="sitl_model_state_publisher.py" name="pose2gazebo" if="$(arg gazebo)" ns="bluerov2">
   </node>
 
   <node pkg="rosservice" type="rosservice" name="mavros_set_stream" args="call --wait /bluerov2/mavros/set_stream_rate 0 10 1"/>

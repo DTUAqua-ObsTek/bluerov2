@@ -21,6 +21,8 @@
 
   <arg name="use_ned_frame" default="true"/>
 
+  <arg name="gazebo_tf" default="true"/>
+
   <!-- Mode to open different robot configurations as set the in file
   nomenclature standard for the files in /robots
   /robots/<mode>.xacro
@@ -68,7 +70,9 @@
   </group>
 
   <!-- Publish state and tf for in relation to the world frame -->
-  <include file="$(find uuv_descriptions)/launch/message_to_tf.launch">
-    	<arg name="namespace" value="$(arg namespace)"/>
-  </include>
+  <group if="$(arg gazebo_tf)">
+    <include file="$(find uuv_descriptions)/launch/message_to_tf.launch">
+          <arg name="namespace" value="$(arg namespace)"/>
+    </include>
+  </group>
 </launch>

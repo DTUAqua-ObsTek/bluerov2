@@ -4,9 +4,32 @@
     <arg name="static_odom" value="False"/>
     <arg name="use_joystick" default="true" doc="Enable Joystick Support"/>
     <arg name="gazebo" default="false" doc="Enable Gazebo for Camera Visualization (no physics)"/>
+    <arg name="mode" default="default" doc="Mode to load into gazebo."/>
 
-    <include file="$(find bluerov2_ardusub)/launch/start_ardusub_sitl.launch"/>
-    <include file="$(find bluerov2_control)/launch/switch_pro_teleop.launch" ns="bluerov2"/>
+    <include file="$(find bluerov2_ardusub)/launch/start_ardusub_sitl.launch">
+            <arg name="gazebo" value="$(arg gazebo)"/>
+    </include>
+
+    <group if="$(arg gazebo)">
+        <include file="$(find bluerov2_gazebo)/launch/peberholm_world.launch">
+            <arg name="use_sim_time" value="false"/>
+        </include>
+        <include file="$(find bluerov2_description)/launch/upload.launch">
+            <arg name="use_geodetic" value="true"/>
+            <arg name="latitude" value="55.603036"/>
+            <arg name="longitude" value="12.8089368"/>
+            <arg name="depth" value="-1"/>
+            <arg name="use_ned_frame" value="true"/>
+            <arg name="mode" value="$(arg mode)"/>
+            <arg name="gazebo_tf" value="false"/>
+        </include>
+        <node pkg="tf2_ros" type="static_transform_publisher" name="map2world" args="0 0 0 0 0 0 map world"/>
+    </group>
+
+    <group if="$(arg use_joystick)">
+        <include file="$(find bluerov2_control)/launch/switch_pro_teleop.launch" ns="bluerov2"/>
+    </group>
+
     <node type="rviz" pkg="rviz" name="rviz" args="-d $(find bluerov2_ardusub)/rviz/bluerov2_ardusub.rviz"/>
     <node type="fake_waterlink.py" pkg="bluerov2_state_estimation" name="fake_waterlink" ns="bluerov2" output="screen">
         <param name="heading" value="90"/>
