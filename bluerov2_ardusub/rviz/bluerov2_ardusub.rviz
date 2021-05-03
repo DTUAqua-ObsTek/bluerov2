@@ -4,8 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /TF1
-        - /TF1/Frames1
         - /FilteredState1/Shape1
       Splitter Ratio: 0.5
     Tree Height: 728
@@ -36,7 +34,7 @@ Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 0.5
-      Cell Size: 5
+      Cell Size: 1
       Class: rviz/Grid
       Color: 160; 160; 164
       Enabled: true
@@ -54,7 +52,7 @@ Visualization Manager:
       Reference Frame: map
       Value: true
     - Alpha: 0.5
-      Cell Size: 5
+      Cell Size: 1
       Class: rviz/Grid
       Color: 160; 160; 164
       Enabled: false
@@ -165,15 +163,17 @@ Visualization Manager:
         bluerov2/base_link:
           Value: false
         bluerov2/base_link_frd:
-          Value: true
+          Value: false
         bluerov2/odom:
           Value: false
         bluerov2/odom_ned:
           Value: false
-        map:
-          Value: false
-        map_ned:
+        earth:
           Value: true
+        map:
+          Value: true
+        map_ned:
+          Value: false
         odom:
           Value: false
         odom_ned:
@@ -188,6 +188,9 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
+        earth:
+          utm:
+            {}
         map:
           bluerov2/odom:
             bluerov2/base_link:
@@ -197,7 +200,6 @@ Visualization Manager:
               {}
           map_ned:
             {}
-        utm:
           waterlinked:
             {}
       Update Interval: 0
@@ -222,7 +224,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: false
-      Enabled: false
+      Enabled: true
       Head Length: 0.30000001192092896
       Head Radius: 0.10000000149011612
       Name: WaterlinkedPose
@@ -231,7 +233,7 @@ Visualization Manager:
       Shape: Axes
       Topic: /bluerov2/waterlinked/pose_with_cov_stamped
       Unreliable: false
-      Value: false
+      Value: true
     - Angle Tolerance: 0.10000000149011612
       Class: rviz/Odometry
       Covariance:
@@ -249,7 +251,7 @@ Visualization Manager:
           Scale: 1
           Value: true
         Value: true
-      Enabled: false
+      Enabled: true
       Keep: 1
       Name: FilteredState
       Position Tolerance: 0.10000000149011612
@@ -265,7 +267,7 @@ Visualization Manager:
         Value: Axes
       Topic: /bluerov2/odometry/filtered
       Unreliable: false
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -293,26 +295,21 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
-      Distance: 34.785499572753906
+      Angle: 0
+      Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: 0.008526493795216084
-        Y: 0.46748074889183044
-        Z: 10.915846824645996
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.209796667098999
-      Target Frame: bluerov2/base_link
-      Value: Orbit (rviz)
-      Yaw: 4.793182373046875
+      Scale: 11.66646957397461
+      Target Frame: map
+      Value: TopDownOrtho (rviz)
+      X: 0
+      Y: 0
     Saved: ~
 Window Geometry:
   Displays:

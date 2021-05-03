@@ -12,6 +12,28 @@ Please note that the packages are still only compatible with Python 2.7, just ma
 sudo apt install ros-melodic-ros-base --reinstall
 ```
 
+**Note**: You will probably need the following as well:
+
+```
+sudo apt install ros-melodic-geographic-info ros-melodic-mavros
+python -m pip install --upgrade scipy
+```
+
+### Installing IMC to ROS Bridge ###
+
+The Inter Module Communication (IMC) API is a messaging protocol used by Neptus, this needs to be bridged to the ROS messaging protocol. 
+There is one good bridge available from [SMarC](https://smarc.se/), please clone the fork into your ROS workspace
+
+Navigate to the ROS workspace (called **catkin_ws** here) where you want to install the bluerov2 stack, then clone another ROS package into `catkin_ws/src` and build the packages.
+
+```
+git clone -b noetic-devel https://github.com/FletcherFT/imc_ros_bridge.git
+cd ..
+catkin_make
+```
+
+There may also be some other missing packages, pay attention to errors in catkin_make or during run time.
+
 ### Updating your bluerov2 repository ###
 
 The bluerov2 repository has been updated substantially to run with neptus. Please pull changes as follows
@@ -26,7 +48,7 @@ git pull origin master
 First, install dependencies: `sudo apt install openjdk-11-jdk`.
 Second, make sure there are no other Javas in your system, you might have a `jre-default` installed by default. Use `apt remove ...` to remove it (See Troubleshooting for more details).
 
-*Neptus is not a ROS package, so you clone into your home directory (or wherever you have write access)*
+**Neptus is not a ROS package, so you clone into your home directory (or wherever you have write access)**
 
 Clone and build Neptus at a known-working commit:
 ```
@@ -41,7 +63,7 @@ The built Neptus executable is now available and can be executed via ```./neptus
 Next you should include the bluerov vehicle definition file into Neptus so that it knows what the vehicle is capable of.
 
 ```
-roscp neptus_playground 00-bluerov2-1.nvcl ~/neptus/vehicles-defs/.
+roscp bluerov2_neptus 00-bluerov2-1.nvcl ~/neptus/vehicles-defs/.
 ```
 
 If you are already running neptus, restart the program to load the new vehicle profle.
@@ -63,27 +85,14 @@ and choosing "View/Edit Home Reference". Change latitude and longitude to 55.603
 
 Then right-click somewhere on the map and choose "Center map in -> Home Reference"
 
-### Installing IMC to ROS Bridge ###
-
-The Inter Module Communication (IMC) API is a messaging protocol used by Neptus, this needs to be bridged to the ROS messaging protocol. 
-There is one good bridge available from [SMarC](https://smarc.se/), please clone the fork into your ROS workspace
-
-Navigate to the ROS workspace (called **catkin_ws** here) where you installed bluerov2, then clone another ROS package into `catkin_ws/src` and build the packages.
-
-```
-git clone -b noetic-devel https://github.com/FletcherFT/imc_ros_bridge.git
-cd ..
-catkin_make
-```
-
 ## Checking Your Setup ##
 
 ### ROS Check ###
 
-You can launch the stack from the neptus_playground package:
+You can launch the stack from the bluerov2_bringup package:
 
 ```
-roslaunch neptus_playground main.launch gui_on:=true rviz_on:=true
+roslaunch bluerov2_bringup bringup_neptus_gazebo.launch rviz_on:=True gui_on:=True
 ```
 
 Any errors should hopefully turn up at this point, you may have to install some additional ros packages:
@@ -91,7 +100,7 @@ Any errors should hopefully turn up at this point, you may have to install some 
 - ros-melodic-geodesy
 - ros-melodic-geographic-msgs
 
-Gazebo will warn you that pymap3d is not installed, please *do not* install this package as it messes with the geodetic libraries used by uuv_simulator.
+Gazebo will warn you that pymap3d is not installed, please **do not** install this package as it messes with the geodetic libraries used by uuv_simulator.
 
 ### Neptus Integration Check ###
 

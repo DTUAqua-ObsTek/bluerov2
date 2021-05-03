@@ -2,56 +2,78 @@
 
 
 import rospy
-from bluerov2_control.srv import ConvertGeoPoints, ConvertGeoPointsRequest
+from bluerov2_control.srv import ConvertGeoPoints, ConvertGeoPointsRequest, SetControlMode, SetControlModeRequest
+from bluerov2_control.msg import FollowWaypointsGoal, FollowWaypointsResult, FollowWaypointsAction, FollowWaypointsFeedback
 from geometry_msgs.msg import Pose, Point
 from geographic_msgs.msg import GeoPoint
-from std_msgs.msg import Empty, Time, String
-from imc_ros_bridge.msg import PlanDB, EstimatedState, PlanControlState, PlanControl, PlanDBInformation, PlanDBState
+from std_msgs.msg import Empty, Time, String, Header
+from imc_ros_bridge.msg import PlanDB, EstimatedState, PlanControlState, PlanControl, PlanDBInformation, PlanDBState, PlanManeuver
 from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry
 from scipy.spatial.transform import Rotation
 from tf2_ros import Buffer, TransformListener
 from uuv_control_msgs.msg import Waypoint
-from uuv_control_msgs.srv import InitWaypointSet, InitWaypointSetRequest, Hold
+from uuv_control_msgs.srv import InitWaypointSet, InitWaypointSetRequest, InitWaypointSetResponse
 import numpy as np
 import imc_enums
 import hashlib
 from StringIO import StringIO
 import time
+import actionlib
+from actionlib_msgs.msg import GoalStatus
 
 
 class ImcInterface(object):
     def __init__(self):
-        self.STATE = PlanControlState.NONE
+        self._estimated_state_pub = rospy.Publisher("imc/estimated_state", EstimatedState, queue_size=5)
+        self._estimated_state_msg = EstimatedState()
+        self._geo_converter = rospy.ServiceProxy("convert_points", ConvertGeoPoints)
         self._plan_db = dict()
         self._current_plan = PlanDB()
-        datum = map(float, rospy.get_param("~datum", []).strip('][').split(','))
-        self._datum = None if len(datum) == 0 else GeoPoint(*map(float,datum))
-        rospy.loginfo("Datum Reference: "+str(self._datum))
-        self._estimated_state_pub = rospy.Publisher("imc/estimated_state", EstimatedState, queue_size=10)
-        self._estimated_state_msg = EstimatedState()
-        self._plan_control_state_pub = rospy.Publisher("imc/plan_control_state", PlanControlState, queue_size=10)
-        self._plan_control_state_msg = PlanControlState()
-        self._plan_control_state_msg.state = self.STATE
-        self._plan_db_pub = rospy.Publisher("imc/plan_db", PlanDB, queue_size=10)
-        self._geo_converter = rospy.ServiceProxy("convert_points", ConvertGeoPoints)
-        self._waypoint_setter = rospy.ServiceProxy("start_waypoint_list", InitWaypointSet)
-        self._hold_position = rospy.ServiceProxy("hold_vehicle", Hold)
         self._tf_buffer = Buffer()
         TransformListener(self._tf_buffer)
         rospy.Subscriber("gps", NavSatFix, self._handle_gps)
-        rospy.Subscriber("pose_gt", Odometry, self._handle_pose)
+        rospy.Subscriber("odometry", Odometry, self._handle_pose)
         rospy.Subscriber("imc/goto_waypoint", Pose, self._handle_goto)
         rospy.Subscriber("imc/plan_control", PlanControl, self._handle_plan_control)
         rospy.Subscriber("imc/abort", Empty, self._handle_abort)
         rospy.Subscriber("imc/imc_heartbeat", Empty, self._handle_imc_heartbeat)
         rospy.Subscriber("imc/plan_db", PlanDB, self._handle_plan_db)
         rospy.Timer(rospy.Duration(1,0), self._send_estimated_state)
-        rospy.Timer(rospy.Duration(1,0), self._send_plan_control_state)
+        self._waypoint_serv = rospy.Service("load_waypoints", InitWaypointSet, self._send_goal)
+        self._action_client = actionlib.SimpleActionClient("follow_waypoints", FollowWaypointsAction)
+        self._mode_client = rospy.ServiceProxy("controller/set_control_mode", SetControlMode)
+        self._plan_db_pub = rospy.Publisher("imc/plan_db", PlanDB, queue_size=10)
+
+    def _send_goal(self, req):
+        res = InitWaypointSetResponse()
+        res.success = False
+        try:
+            self._action_client.wait_for_server(rospy.Duration(5))
+            goal = FollowWaypointsGoal()
+            goal.waypoints.header = Header(0, rospy.Time.now(), "utm")
+            goal.waypoints.start_time = Time(goal.waypoints.header.stamp)
+            goal.waypoints.waypoints = req.waypoints
+            self._action_client.send_goal(goal, self._handle_done, self._handle_active, self._handle_feedback)
+            res.success = True
+            return res
+        except Exception as e:
+            rospy.logerr("{} | {}".format(rospy.get_name(),e.message))
+            return res
+
+    def _handle_done(self, status, result):
+        rospy.loginfo("{} | Action completed, status: {}\n Waypoints completed: {}".format(rospy.get_name(), status, result))
+
+    def _handle_active(self):
+        rospy.loginfo("{} | Waypoints set, Front Seat Driver active.".format(rospy.get_name()))
+
+    def _handle_feedback(self, feedback):
+        rospy.loginfo_throttle(10, "{} | {}".format(rospy.get_name(), feedback))
 
     def _handle_goto(self, msg):
         """Parse if a goto message is received"""
         # TODO Not implemented in imc_ros_bridge yet
+        rospy.loginfo(msg)
         pass
 
     def _parse_plan(self):
@@ -62,39 +84,23 @@ class ImcInterface(object):
         for maneuver in self._current_plan.plan_spec.maneuvers:
             geopoints.append( GeoPoint(maneuver.maneuver.lat*180.0/np.pi,maneuver.maneuver.lon*180.0/np.pi,maneuver.maneuver.z))
             speeds.append(maneuver.maneuver.speed)
-        if self._datum is not None:
-            geopoints.append(self._datum)
         req = ConvertGeoPointsRequest()
         req.geopoints = geopoints
         points = self._geo_converter.call(req).utmpoints
         wps = []
         # If datum is available, then reference frame is ENU World
-        if self._datum is not None:
-            for point, speed in zip(points[:-1],speeds):
-                wp = Waypoint()
-                wp.point = Point(point.x-points[-1].x,point.y-points[-1].y,-point.z-points[-1].z)
-                wp.header.stamp = rospy.Time.now()
-                wp.header.frame_id = "world"
-                wp.radius_of_acceptance = 3.0
-                wp.max_forward_speed = speed
-                wp.use_fixed_heading = False
-                wp.heading_offset = 0.0
-                wps.append(wp)
-        # If datum is not given, then reference frame is ENU UTM TODO: LOOKUP TRANSFORM
-        else:
-            for point, speed in zip(points, speeds):
-                wp = Waypoint()
-                wp.point.x = point.x
-                wp.point.y = point.y
-                wp.point.z = -point.z
-                wp.header.stamp = rospy.Time.now()
-                wp.header.frame_id = "utm"
-                wp.radius_of_acceptance = 3.0
-                wp.max_forward_speed = speed
-                wp.use_fixed_heading = False
-                wp.heading_offset = 0.0
-                wps.append(wp)
-        self.STATE = PlanControlState.READY
+        for point, speed in zip(points, speeds):
+            wp = Waypoint()
+            wp.point.x = point.x
+            wp.point.y = point.y
+            wp.point.z = -point.z
+            wp.header.stamp = rospy.Time.now()
+            wp.header.frame_id = "utm"
+            wp.radius_of_acceptance = 3.0
+            wp.max_forward_speed = speed
+            wp.use_fixed_heading = False
+            wp.heading_offset = 0.0
+            wps.append(wp)
         req = InitWaypointSetRequest()
         req.start_time = Time(rospy.Time.from_sec(0))
         req.start_now = True
@@ -102,11 +108,7 @@ class ImcInterface(object):
         req.max_forward_speed = max(speeds)
         req.interpolator.data = "lipb"
         req.heading_offset = 0
-        self._waypoint_setter.wait_for_service()
-        if self._waypoint_setter(Time(rospy.Time.from_sec(0.0)),True,wps,max(speeds),0.0,String("lipb")):
-            self.STATE = PlanControlState.EXECUTING
-        else:
-            self.STATE = PlanControlState.FAILURE
+        self._send_goal(req)
 
     def _handle_plan_control(self, msg):
         """Parse requests to start or stop a plan."""
@@ -115,22 +117,16 @@ class ImcInterface(object):
         # request to start a mission!
         if typee == imc_enums.PLANDB_TYPE_REQUEST and op == imc_enums.PLANDB_OP_SET:
             self._current_plan = self._plan_db[msg.plan_id]
-            self.STATE = self._plan_control_state_msg.INITIALIZING
             self._parse_plan()
+            req = SetControlModeRequest()
+            req.mode.mode = req.mode.LOSGUIDANCE
+            self._mode_client(req)
         # request to stop mission
         elif typee == imc_enums.PLANDB_TYPE_REQUEST and op == imc_enums.PLANDB_OP_DEL:
             self._current_plan = PlanDB()
-            self._hold_position.wait_for_service()
-            self._hold_position()
-            self.STATE = self._plan_control_state_msg.READY
-
-    def _handle_abort(self, msg):
-        """Listen for the abort message, do something if it comes :)"""
-        pass
-
-    def _handle_imc_heartbeat(self, msg):
-        """Here in case you want to do something on the heartbeat of the IMC"""
-        pass
+            req = SetControlModeRequest()
+            req.mode.mode = req.mode.HOLDPOSITION
+            self._mode_client(req)
 
     def _handle_plan_db(self, msg):
         """Parse requests for Plan Database messages"""
@@ -206,6 +202,20 @@ class ImcInterface(object):
         else:
             rospy.loginfo_throttle_identical(5, "Received some unhandled planDB message:\n" + str(msg))
 
+    def _handle_abort(self, msg):
+        """Listen for the abort message, do something if it comes :)"""
+        self._action_client.wait_for_server()
+        if self._action_client.get_state() == GoalStatus.ACTIVE:
+            self._action_client.cancel_goal()
+        self._mode_client.wait_for_service()
+        req = SetControlModeRequest()
+        req.mode.mode = req.mode.ABORT
+        self._mode_client(req)
+
+    def _handle_imc_heartbeat(self, msg):
+        """Here in case you want to do something on the heartbeat of the IMC"""
+        pass
+
     def _handle_gps(self, msg):
         # neptus expects latitude and longitude to be in radians
         self._estimated_state_msg.lat = msg.latitude*np.pi/180.0
@@ -213,8 +223,8 @@ class ImcInterface(object):
         self._estimated_state_msg.alt = msg.altitude
 
     def _handle_pose(self, msg):
-        if self._tf_buffer.can_transform("bluerov2/base_link", "world_ned", rospy.Time.now(), rospy.Duration.from_sec(0.5)):
-            tf = self._tf_buffer.lookup_transform("bluerov2/base_link", "world_ned", rospy.Time.now(), rospy.Duration.from_sec(0.5))
+        if self._tf_buffer.can_transform("bluerov2/base_link", "map_ned", rospy.Time.now(), rospy.Duration.from_sec(0.5)):
+            tf = self._tf_buffer.lookup_transform("bluerov2/base_link", "map_ned", rospy.Time.now(), rospy.Duration.from_sec(0.5))
         else:
             return
         # TODO neptus gets confused if you try to give all available estimates, there is probably a transformation problem
@@ -240,10 +250,6 @@ class ImcInterface(object):
 
     def _send_estimated_state(self, event):
         self._estimated_state_pub.publish(self._estimated_state_msg)
-
-    def _send_plan_control_state(self, event):
-        self._plan_control_state_msg.state = self.STATE
-        self._plan_control_state_pub.publish(self._plan_control_state_msg)
 
 
 if __name__=="__main__":

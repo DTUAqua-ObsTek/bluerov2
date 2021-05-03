@@ -61,12 +61,12 @@ NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Ninte
 
 - Launch MAVROS 
 
-	- with joystick: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch`
+	- with joystick: `roslaunch bluerov2_bringup bringup_ardusub_sitl.launch`
 
-	- with keyboard: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch use_joystick:=false`
+	- with keyboard: `roslaunch bluerov2_bringup bringup_ardusub_sitl.launch use_joystick:=false`
 
 - With Gazebo Camera Simulation
 
-	- with joystick: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch gazebo:=true rviz:=true`
+	- with joystick: `roslaunch bluerov2_bringup bringup_ardusub_sitl.launch gazebo:=true`
 
-	- with keyboard: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch gazebo:=true rviz:=true use_joystick:=false`
+	- with keyboard: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch gazebo:=true use_joystick:=false`

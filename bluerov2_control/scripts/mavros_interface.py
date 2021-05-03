@@ -12,14 +12,6 @@ from bluerov2_control.msg import ControlMode
 from bluerov2_control.srv import SetControlMode, SetControlModeRequest
 
 
-# TODO MAKE THIS WORK WITH TRAJECTORY CONTROLLER
-#  FIRST: LISTEN TO JOYSTICK BUTTONS, FORWARD TO MAVROS/MANUAL_CONTROL/SEND, FORWARD AXES IF TELEOP MODE
-#  SECOND: LISTEN TO THRUSTER_MANAGER/INPUT_STAMPED, CONVERT TO GAINS, FORWARD TO MAVROS/MANUAL_CONTROL/SEND IF AUTO MODE
-#  THIRD: IF SPECIAL JOYSTICK BUTTON "CHANGE MODE" PRESSED, THEN SWITCH BETWEEN [TELEOP, AUTO] MODES
-#  FOURTH: DURING SWITCH TO TELEOP, CALL HOLD_POSITION SERVICE TO STOP TRAJECTORY CONTROLLER
-#  FIFTH: MAKE POLYNOMIAL FOR EACH DOF (LIKE JOY_POLYNOMIAL)
-
-
 class MavrosInterface(object):
 
     """
@@ -67,24 +59,24 @@ class MavrosInterface(object):
         """
         Commanded wrench is converted to joystick gains and sent to manual control topic
         """
-        if not msg.header.frame_id.endswith("frd"):
-            forces = Vector3Stamped()
-            forces.header = msg.header
-            forces.vector = msg.wrench.force
-            torques = Vector3Stamped()
-            torques.header = msg.header
-            torques.vector = msg.wrench.torque
-            forces = self._tf_buff.transform(forces, forces.header.frame_id+"_frd", rospy.Duration(1))
-            torques = self._tf_buff.transform(torques, torques.header.frame_id+"_frd", rospy.Duration(1))
-            msg.wrench.force = forces.vector
-            msg.wrench.torque = torques.vector
+        # if not msg.header.frame_id.endswith("frd"):
+        #     forces = Vector3Stamped()
+        #     forces.header = msg.header
+        #     forces.vector = msg.wrench.force
+        #     torques = Vector3Stamped()
+        #     torques.header = msg.header
+        #     torques.vector = msg.wrench.torque
+        #     forces = self._tf_buff.transform(forces, forces.header.frame_id+"_frd", rospy.Duration(1))
+        #     torques = self._tf_buff.transform(torques, torques.header.frame_id+"_frd", rospy.Duration(1))
+        #     msg.wrench.force = forces.vector
+        #     msg.wrench.torque = torques.vector
         # rospy.loginfo_throttle(1.0, msg)
         # If the controller state is ON, then map wrench to joystick gains and send to ROV
         if self._controller_state != ControlMode.OFF:
             self._man.x = np.clip(np.polyval(self._wrench_polynomial["x"], msg.wrench.force.x), -1000.0, 1000.0)
-            self._man.y = np.clip(np.polyval(self._wrench_polynomial["y"], msg.wrench.force.y), -1000.0, 1000.0)
+            self._man.y = -np.clip(np.polyval(self._wrench_polynomial["y"], msg.wrench.force.y), -1000.0, 1000.0)
             self._man.z = np.clip(np.polyval(self._wrench_polynomial["z"], msg.wrench.force.z), -1000.0, 1000.0)
-            self._man.r = np.clip(np.polyval(self._wrench_polynomial["r"], msg.wrench.torque.z), -1000.0, 1000.0)
+            self._man.r = -np.clip(np.polyval(self._wrench_polynomial["r"], msg.wrench.torque.z), -1000.0, 1000.0)
 
     def _joy_callback(self, msg):
         # First look at the buttons and decide if the manual override button has been triggered

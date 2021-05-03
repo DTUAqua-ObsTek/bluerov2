@@ -5,5 +5,6 @@ uint8 VELTELEOP=3
 uint8 HOLDPOSITION=4
 uint8 AUTOPILOT=5
 uint8 LOSGUIDANCE=6
+uint8 ABORT=7
 
 uint8 mode

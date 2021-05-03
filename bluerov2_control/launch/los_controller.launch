@@ -5,6 +5,7 @@
         <rosparam command="load" file="$(find bluerov2_control)/config/controllers/cascade/simple_los.yaml"/>
         <remap from="odometry/feedback" to="odometry/filtered"/>
         <remap from="accel/feedback" to="accel/filtered"/>
+        <remap from="range" to="mavros/distance_sensor/rangefinder_pub"/>
     </node>
     <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="dyn_reconfigure"/>
 </launch>

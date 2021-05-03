@@ -1,0 +1,13 @@
+<launch>
+    <arg name="pi" value="3.14159265359"/>
+    <arg name="halfpi" value="1.57079632679"/>
+    <include file="$(find bluerov2_control)/launch/switch_pro_teleop.launch" ns="bluerov2"/>
+    <node type="rviz" pkg="rviz" name="rviz" args="-d $(find bluerov2_ardusub)/rviz/frame_debug.rviz"/>
+    <include file="$(find bluerov2_state_estimation)/launch/ekf.launch"/>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="map2odom" args="0 0 0 0 0 0 1 map bluerov2/odom"/>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="wl2ned" args="0 0 0 0.707106781185 0.707106781185 0 0 waterlinked waterlinked_ned"/>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="odom2ned" args="0 0 0 0.707106781185 0.707106781185 0 0 bluerov2/odom bluerov2/odom_ned"/>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="baselink2frd" args="0 0 0 1 0 0 0 bluerov2/base_link bluerov2/base_link_frd"/>
+    <include file="$(find waterlinked_gps)/launch/uwgps-bringup.launch" ns="bluerov2"/>
+    <include file="los_controller.launch"/>
+</launch>

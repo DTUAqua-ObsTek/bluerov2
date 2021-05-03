@@ -1,6 +1,6 @@
 <launch>
     <arg name="datum" default=""/>
-    <node pkg="bluerov2_executive" type="executive.py" name="executive" ns="bluerov2" output="screen">
+    <node pkg="bluerov2_executive" type="gazebo_executive.py" name="executive" ns="bluerov2" output="screen">
             <param name="datum" value="$(arg datum)"/>
     </node>
 </launch>

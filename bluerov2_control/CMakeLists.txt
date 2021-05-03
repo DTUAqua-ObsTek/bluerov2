@@ -16,6 +16,8 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   message_generation
   dynamic_reconfigure
+  uuv_control_msgs
+  actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -56,6 +58,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   ControlMode.msg
+  Autopilot.msg
 )
 
 # Generate services in the 'srv' folder
@@ -66,17 +69,18 @@ add_message_files(
  )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+  FILES
+  FollowWaypoints.action
+)
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
   geographic_msgs
   geometry_msgs
+  uuv_control_msgs
+  actionlib_msgs
 )
 
 ################################################

@@ -60,10 +60,10 @@ global_position:
 imu:
   frame_id: "bluerov2/base_link"
   # need find actual values ( can find by sitting on desk and recording for a few mins)
-  linear_acceleration_stdev: 0.0003
-  angular_velocity_stdev: 0.0003490659 // 0.02 degrees
+  linear_acceleration_stdev: 1.3
+  angular_velocity_stdev: 0.0003490659 # 0.02 degrees
   orientation_stdev: 1.0
-  magnetic_stdev: 0.0
+  magnetic_stdev: 1.0
 
 # local_position
 local_position:

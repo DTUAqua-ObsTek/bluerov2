@@ -22,5 +22,5 @@
         <arg name="saturation" value="1540"/>
     </include>
     <node pkg="bluerov2_control" type="geodetic_to_local.py" name="geodetic2local" ns="bluerov2"/>
-    <node if="$(arg rviz_on)" name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find bluerov2_control)/rviz/bluerov2_control.rviz"/>
+    <node if="$(arg rviz_on)" name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find bluerov2_gazebo)/rviz/bluerov2_gazebo.rviz"/>
 </launch>

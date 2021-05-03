@@ -5,7 +5,7 @@ file = "T200-Public-Performance-Data-10-20V-September-2019.csv"
 
 data = np.genfromtxt(file, dtype=float, delimiter=",", skip_header=1)
 gain = np.linspace(-1000,1000, data.shape[0], dtype=float)
-gainz = np.linspace(0 , 1000, data.shape[0], dtype=float)
+gainz = np.linspace(0, 1000, data.shape[0], dtype=float)
 # map from kg-force to newton
 N = data[:,5] * 9.80665
 
