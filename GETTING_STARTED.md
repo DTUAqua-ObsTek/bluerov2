@@ -53,6 +53,8 @@ NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Ninte
 
 ## Test ArduSub SITL and MAVROS ##
 
+** NOTE, this is still a work in progress, Gazebo and ardusub like to fight over the /tf **
+
 - Launch an instance of ArduSub simulation
 
 	`cd ardupilot/ArduSub`

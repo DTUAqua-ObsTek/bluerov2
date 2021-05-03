@@ -19,4 +19,14 @@ This will launch a gazebo simulation of the peberholm world with a BlueROV2 equi
 
 ## ArduSub Quick Start ##
 
-From a terminal, start the ardusub sitl simulation ()
+From a terminal, start the ardusub sitl simulation:
+
+```
+sim_vehicle.py -v ArduSub -l 55.60304,12.808937,0,0 --map --console
+```
+
+In another terminal, run the following:
+
+```
+roslaunch bluerov2_bringup bringup_ardusub_sitl.launch
+```

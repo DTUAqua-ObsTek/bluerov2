@@ -34,7 +34,7 @@ class SITL(object):
     def run(self):
         """ Send SITL information to gazebo: Pose from Pixhawk
         """
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(100)
         while not rospy.is_shutdown():
 
             # Get ROV position and send it to gazebo
