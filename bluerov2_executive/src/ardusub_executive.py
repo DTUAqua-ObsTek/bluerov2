@@ -12,7 +12,7 @@ from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry
 from scipy.spatial.transform import Rotation
 from tf2_ros import Buffer, TransformListener
-from uuv_control_msgs.msg import Waypoint
+from uuv_control_msgs.msg import Waypoint, WaypointSet
 from uuv_control_msgs.srv import InitWaypointSet, InitWaypointSetRequest, InitWaypointSetResponse
 import numpy as np
 import imc_enums
@@ -44,16 +44,22 @@ class ImcInterface(object):
         self._action_client = actionlib.SimpleActionClient("follow_waypoints", FollowWaypointsAction)
         self._mode_client = rospy.ServiceProxy("controller/set_control_mode", SetControlMode)
         self._plan_db_pub = rospy.Publisher("imc/plan_db", PlanDB, queue_size=10)
+        self._marker_pub = rospy.Publisher("current_waypoints", WaypointSet, queue_size=1)
 
     def _send_goal(self, req):
         res = InitWaypointSetResponse()
         res.success = False
         try:
+            self._mode_client.wait_for_service(rospy.Duration(5))
+            mode_req = SetControlModeRequest()
+            mode_req.mode.mode = mode_req.mode.LOSGUIDANCE
+            self._mode_client(mode_req)
             self._action_client.wait_for_server(rospy.Duration(5))
             goal = FollowWaypointsGoal()
             goal.waypoints.header = Header(0, rospy.Time.now(), "utm")
             goal.waypoints.start_time = Time(goal.waypoints.header.stamp)
             goal.waypoints.waypoints = req.waypoints
+            self._marker_pub.publish(goal.waypoints)
             self._action_client.send_goal(goal, self._handle_done, self._handle_active, self._handle_feedback)
             res.success = True
             return res
@@ -81,22 +87,24 @@ class ImcInterface(object):
         """A plan has been requested by neptus to start. Parse the plan here and send to controller."""
         geopoints = []
         speeds = []
+        is_depths = []
         for maneuver in self._current_plan.plan_spec.maneuvers:
             geopoints.append( GeoPoint(maneuver.maneuver.lat*180.0/np.pi,maneuver.maneuver.lon*180.0/np.pi,maneuver.maneuver.z))
             speeds.append(maneuver.maneuver.speed)
+            is_depths.append(maneuver.maneuver.z_units == 1)
         req = ConvertGeoPointsRequest()
         req.geopoints = geopoints
         points = self._geo_converter.call(req).utmpoints
         wps = []
         # If datum is available, then reference frame is ENU World
-        for point, speed in zip(points, speeds):
+        for point, speed, is_depth in zip(points, speeds, is_depths):
             wp = Waypoint()
             wp.point.x = point.x
             wp.point.y = point.y
-            wp.point.z = -point.z
+            wp.point.z = -abs(point.z) if is_depth else abs(point.z)
             wp.header.stamp = rospy.Time.now()
             wp.header.frame_id = "utm"
-            wp.radius_of_acceptance = 3.0
+            wp.radius_of_acceptance = 1.0
             wp.max_forward_speed = speed
             wp.use_fixed_heading = False
             wp.heading_offset = 0.0

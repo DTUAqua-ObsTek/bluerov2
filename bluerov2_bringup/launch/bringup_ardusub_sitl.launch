@@ -11,7 +11,7 @@
     </include>
 
     <group if="$(arg gazebo)">
-        <include file="$(find bluerov2_gazebo)/launch/peberholm_world.launch">
+        <include file="$(find bluerov2_gazebo)/launch/ardusub_peberholm_world.launch">
             <arg name="use_sim_time" value="false"/>
         </include>
         <include file="$(find bluerov2_description)/launch/upload.launch">
@@ -65,4 +65,7 @@
     </node>
     <node ns="bluerov2" pkg="bluerov2_control" type="geodetic_to_local.py" name="geodetic_to_utm"/>
     <include ns="bluerov2" file="$(find bluerov2_neptus)/launch/neptus.launch"/>
+    <node ns="bluerov2" pkg="bluerov2_control" type="trajectory_visualizer.py" name="trajectory_visualizer">
+        <remap from="odometry" to="odometry/filtered"/>
+    </node>
 </launch>
