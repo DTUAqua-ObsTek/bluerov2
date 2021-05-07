@@ -33,10 +33,10 @@ mappings:
 
 
 
-    light_dec: 14
-    light_inc: 15
-    gain_dec: 16
-    gain_inc: 17
+    light_dec: 15
+    light_inc: 14
+    gain_dec: 17
+    gain_inc: 16
 
 # arm: 512 (9)
 # disarm: 256 (8)

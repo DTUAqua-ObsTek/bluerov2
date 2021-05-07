@@ -5,7 +5,7 @@
 
 import rospy
 #
-from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion, Vector3
+from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion, Vector3, TwistStamped
 from requests.exceptions import ConnectionError
 from requests_futures.sessions import FuturesSession
 # Custom ROS messages
@@ -16,7 +16,8 @@ from geodesy import utm
 from scipy.spatial.transform import Rotation
 import numpy as np
 from pyproj import Proj
-from math import pi, atan, tan, sin
+from math import pi, atan, tan, sin, sqrt, atan2
+from sensor_msgs.msg import NavSatFix
 
 
 def is_south(band):
@@ -49,8 +50,10 @@ class WaterlinkedGPS():
 
         self._map_frame_id = rospy.get_param("~map_frame_id", "map")
         self._waterlinked_frame_id = rospy.get_param("~waterlinked_frame_id", "waterlinked")
-        self._send_tf = rospy.get_param("~send_tf", True)
+        self._send_tf = rospy.get_param("~send_tf", False)
         self._datum = rospy.get_param("~datum", None)  # if no datum specified
+        self._master_gps_ns = rospy.get_param("~master_gps_ns", None)  # None
+        self._master_orientation_topic = rospy.get_param("~master_imu_topic", None)
 
         self._tf_buffer = Buffer()
         self._tf_bcast = TransformBroadcaster()
@@ -86,6 +89,23 @@ class WaterlinkedGPS():
 
         # HTTP request session
         self._session = FuturesSession(max_workers=10)
+
+        # If a master gps topic has been specified, then forward that to waterlinked for use
+        if self._master_gps_ns is not None:
+            self._gps_msg = {
+                              "cog": 0,
+                              "fix_quality": 1,
+                              "hdop": 0,
+                              "lat": 0.0,
+                              "lon": 0.0,
+                              "numsats": 11,
+                              "orientation": 0.0,
+                              "sog": 0.0
+                            }
+            self._gps_url = self._base_url + "/external/master"
+            rospy.Subscriber(self._master_gps_ns+"/fix", NavSatFix, self._handle_master_gps)
+            rospy.Subscriber(self._master_gps_ns+"/vel", TwistStamped, self._handle_master_vel)
+            rospy.Timer(rospy.Duration.from_sec(1.0), self._forward_master_position)
 
         # Configure the slow and fast timer callbacks
         rospy.Timer(rospy.Duration.from_sec(1.0 / self._rate_slow_hz), self.slow_callback)
@@ -132,6 +152,30 @@ class WaterlinkedGPS():
         for url_str in self._urls_fast:
             message += '- ' + url_str +'\n'
         rospy.loginfo('{} | {}'.format(rospy.get_name(), message))
+
+    def _forward_master_position(self, event):
+        """ If an external gps topic is subscribed, forward the latitude and longitude over to waterlinked."""
+        try:
+            r = self._session.put(self._gps_url, json=self._gps_msg, timeout=10)
+            r = r.result(10)
+        except Exception as e:
+            rospy.logerr_throttle(10.0, "{} | {}".format(rospy.get_name(), e.message))
+            return
+        if r.status_code != 200:
+            rospy.logerr("Error setting master position: {} {}".format(r.status_code, r.text))
+
+    def _handle_master_gps(self, msg):
+        """Fill in GPS information for message"""
+        self._gps_msg["lat"] = msg.latitude
+        self._gps_msg["lon"] = msg.longitude
+        self._gps_msg["hdop"] = msg.position_covariance[0]
+
+    def _handle_master_vel(self, msg):
+        """Fill in GPS cog/sog for message"""
+        self._gps_msg["sog"] = sqrt(msg.twist.linear.x**2 + msg.twist.linear.y**2)
+        val = -1*(atan2(msg.twist.linear.y, msg.twist.linear.x) * 180.0 / pi - 90)
+        val = 360 + val if val < 0 else val
+        self._gps_msg["cog"] = val
 
     def slow_callback(self, event):
         """ Callback function that requests Waterlinked status and config
@@ -226,14 +270,14 @@ class WaterlinkedGPS():
         """ Callback function that requests Waterlinked position and orientation
         information at a fast rate. """
         # Request current time and use it for all messages
-        tnow = rospy.Time.now().to_sec()
+        tnow = rospy.Time.now()
         if self._is_first_fast_loop:
             self._is_first_fast_loop = False
             self.f_cum_fast = 0
             self.n_fast = 0
-            self._fast_t0 = tnow
+            self._fast_t0 = tnow.to_sec()
         else:
-            f = 1 / (tnow - self._fast_t0)
+            f = 1 / (tnow.to_sec() - self._fast_t0)
             self.f_cum_fast += f
             self.n_fast += 1
             f_avg = self.f_cum_fast / self.n_fast

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- THIS LAUNCH FILE BRINGS UP RECORDING NODES FOR CAMERA AND FLIGHT DATA -->
+  
+<launch>
+	<arg name="bag_dir"/>
+
+	<!-- Recorder Nodes -->
+	<!-- Record the compressed image data from the onboard camera -->
+	<node pkg="rosbag" type="record" name="rosbag_record_cam" args="-o $(arg bag_dir)/video /bluerov2/nose_cam/camera_info /bluerov2/nose_cam/image_raw/compressed" output="log"/>
+
+	<!-- Record all data except camera feeds -->
+	<node pkg="rosbag" type="record" name="flight_data_recorder" args="-o $(arg bag_dir)/flightdata -a -x '/bluerov2/mavlink/(.*)|/bluerov2/nose_cam/(.*)|/bluerov2/image_view_node/(.*)'" output="log"/>
+
+</launch>

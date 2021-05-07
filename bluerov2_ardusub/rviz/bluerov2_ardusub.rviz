@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /TF1/Frames1
         - /FilteredState1/Shape1
+        - /Image1
       Splitter Ratio: 0.5
     Tree Height: 522
   - Class: rviz/Selection
@@ -165,41 +166,9 @@ Visualization Manager:
           Value: true
         bluerov2/base_link_frd:
           Value: false
-        bluerov2/base_link_ned:
-          Value: false
-        bluerov2/gps_link:
-          Value: false
-        bluerov2/imu_link:
-          Value: false
         bluerov2/odom:
           Value: false
         bluerov2/odom_ned:
-          Value: false
-        bluerov2/pose_sensor_link_default:
-          Value: false
-        bluerov2/pressure_link:
-          Value: false
-        bluerov2/thruster_0:
-          Value: false
-        bluerov2/thruster_1:
-          Value: false
-        bluerov2/thruster_2:
-          Value: false
-        bluerov2/thruster_3:
-          Value: false
-        bluerov2/thruster_4:
-          Value: false
-        bluerov2/thruster_5:
-          Value: false
-        camera_down_link:
-          Value: false
-        camera_down_link_optical:
-          Value: false
-        camera_front_link:
-          Value: false
-        camera_front_link_optical:
-          Value: false
-        earth:
           Value: false
         map:
           Value: true
@@ -209,65 +178,15 @@ Visualization Manager:
           Value: false
         odom_ned:
           Value: false
-        utm:
-          Value: false
-        waterlinked:
-          Value: false
-        world:
-          Value: false
-        world_ned:
-          Value: false
       Marker Scale: 50
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        earth:
-          utm:
-            {}
         map:
-          bluerov2/odom:
-            bluerov2/base_link:
-              bluerov2/base_link_frd:
-                {}
-              bluerov2/base_link_ned:
-                {}
-              bluerov2/gps_link:
-                {}
-              bluerov2/imu_link:
-                {}
-              bluerov2/pose_sensor_link_default:
-                {}
-              bluerov2/pressure_link:
-                {}
-              bluerov2/thruster_0:
-                {}
-              bluerov2/thruster_1:
-                {}
-              bluerov2/thruster_2:
-                {}
-              bluerov2/thruster_3:
-                {}
-              bluerov2/thruster_4:
-                {}
-              bluerov2/thruster_5:
-                {}
-              camera_down_link:
-                camera_down_link_optical:
-                  {}
-              camera_front_link:
-                camera_front_link_optical:
-                  {}
-            bluerov2/odom_ned:
-              {}
           map_ned:
             {}
-          waterlinked:
-            {}
-          world:
-            world_ned:
-              {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -339,7 +258,7 @@ Visualization Manager:
       Marker Topic: /bluerov2/waypoint_markers
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -367,14 +286,14 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /bluerov2/camera_down/camera_image
+      Image Topic: /bluerov2/nose_cam/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
       Name: Image
       Normalize Range: true
       Queue Size: 2
-      Transport Hint: raw
+      Transport Hint: compressed
       Unreliable: false
       Value: true
   Enabled: true

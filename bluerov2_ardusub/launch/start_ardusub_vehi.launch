@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!-- THIS LAUNCH FILE BRINGS UP THE SENTINEL IN ROV MODE -->
+<!-- IT PUBLISHES THE VIDEO DATA AMONG OTHER THINGS -->
+  
+<launch>
+  <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
+  <!-- Setup environment -->
+  <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
+  <arg name="rov" default = "rov"/>
+  <arg name="gcs" default = "gcs"/>
+  <arg name="ip_rov" default = "192.168.2.2"/>
+  <arg name="ip_gcs" default = "192.168.2.3"/>
+  <arg name="rov_user" default = "pi"/>
+  <arg name="gcs_user" default = "fft"/>
+  
+  <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
+  <!-- ARGUMENTS -->
+  <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
+
+  <arg name="fcu_url" default="/dev/autopilot:115200"/>
+  <arg name="gcs_url" default="udp://@$(arg ip_gcs)"/>
+  <arg name="system_id" default="255"/>
+  <arg name="component_id" default="240"/>
+  <arg name="tgt_system" default="1"/>
+  <arg name="tgt_component" default="1"/>
+  <arg name="pluginlists_yaml" value="$(find bluerov2_ardusub)/config/apm_pluginlists.yaml"/>
+  <arg name="config_yaml" value="$(find bluerov2_ardusub)/config/apm_config.yaml"/>
+  <arg name="log_output" value="log"/>
+  <arg name="updaterate" value="10"/>
+  <arg name="launch_mavros" default="true"/>
+  <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
+  <!-- END ARGUMENTS -->
+  <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
+
+  <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
+  <!-- SETUP MACHINES -->
+  <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
+  <machine name="$(arg rov)" address="$(arg ip_rov)" user="$(arg rov_user)" env-loader="/home/pi/aqua_catkin_ws/src/sentinel_bringup/envs/rov-env.sh"/>
+  <machine name="$(arg gcs)" address="$(arg ip_gcs)" user="$(arg gcs_user)" env-loader="$(find bluerov2_ardusub)/envs/shore-env.sh"/>
+
+  <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
+  <!-- BASIC MAVROS INTERFACE -->
+  <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
+  <!-- load blacklist, config -->
+  <group ns="bluerov2/mavros">
+    <rosparam command="load" file="$(arg pluginlists_yaml)"/>
+    <rosparam command="load" file="$(arg config_yaml)"/>
+  </group>
+  <group if="$(arg launch_mavros)">
+    <node machine="$(arg rov)" pkg="mavros" type="mavros_node" name="mavros" required="true" clear_params="true" output="screen" ns="bluerov2">
+        <param name="fcu_url" value="$(arg fcu_url)"/>
+        <param name="gcs_url" value="$(arg gcs_url)"/>
+        <param name="system_id" value="$(arg system_id)"/>
+        <param name="component_id" value="$(arg component_id)"/>
+        <param name="target_system_id" value="$(arg tgt_system)"/>
+        <param name="target_component_id" value="$(arg tgt_component)"/>
+    </node>
+    <!-- Set the stream rate of mavros -->
+    <node ns="bluerov2" machine="$(arg rov)" pkg="rosservice" type="rosservice" name="mavros_set_stream" args="call --wait /bluerov2/mavros/set_stream_rate 0 $(arg updaterate) 1"/>
+  </group>
+  
+</launch>
