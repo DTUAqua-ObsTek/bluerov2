@@ -4,10 +4,12 @@
 	<arg name="port" default="80"/>
 	<arg name="serial_port" default="/dev/ttyUSB0"/>
 	<arg name="baud" default="4800"/>
+	<arg name="send_tf" default="true"/>
 	<node name="waterlinked_gps" pkg="waterlinked_gps" type="waterlinked_gps_node.py" output="screen">
 		<param name="ip" type="string" value="$(arg ip)"/>
 		<param name="port" type="string" value="$(arg port)"/>
 		<param name="master_gps_ns" value="external"/>
+		<param name="send_tf" value="$(arg send_tf)"/>
 	</node>
 	<node ns="external" name="external_gps" pkg="nmea_navsat_driver" type="nmea_serial_driver">
 		<param name="port" value="$(arg serial_port)"/>

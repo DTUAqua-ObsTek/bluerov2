@@ -363,6 +363,7 @@ class WaterlinkedGPS():
 
             # /waterlinked/position/master
             res_position_master = future_list[4].result()
+            msg_position_master = None
             if res_position_master.ok:
                 data = res_position_master.json()
                 msg_position_master = PositionMaster()
@@ -379,34 +380,16 @@ class WaterlinkedGPS():
             # CONVENTION: UTM -> WATERLINKED IS DEFINED BY UTM POSITION OF MASTER, ROTATED ACCORDING TO MASTER ORIENTATION
             # CONVENTION: UTM -> MAP IS DEFINED BY UTM POSITION OF MASTER, WITHOUT ANY ROTATION (ALIGNED WITH NORTH)
             # CONVENTION: UTM -> MAP CAN ALSO BE DEFINED BY AN EXTERNAL DATUM [LATITUDE, LONGITUDE]
-            if self._send_tf:
-                tf_loc = TransformStamped()  # Waterlinked transformation
-                tf_loc.header.stamp = tnow
-                tf_loc.header.frame_id = "utm"
-                tf_loc.child_frame_id = self._waterlinked_frame_id
+            if self._send_tf and msg_position_master is not None:
                 tf_map = TransformStamped()  # Map transformation
                 tf_map.header.stamp = tnow
-                tf_map.header.frame_id = "utm"
-                tf_map.child_frame_id = self._map_frame_id
-                geopoint = GeoPoint(msg_position_master.lat, msg_position_master.lon, 0.0)
-                utmpoint = utm.fromMsg(geopoint)  # Get position of master in UTM
-                tf_loc.transform.translation = Vector3(utmpoint.easting, utmpoint.northing, 0.0)  #
+                tf_map.header.frame_id = self._map_frame_id
+                tf_map.child_frame_id = self._waterlinked_frame_id
                 # ORIENTATION IS PROVIDED AS NORTH REFERENCED CW
                 # NEEDS TO BE CONVERTED TO EAST REFERENCED CCW
                 q = Rotation.from_euler('xyz', [0, 0, 90-msg_position_master.orientation], degrees=True).as_quat()
-                tf_loc.transform.rotation = Quaternion(*q)
-                if self._datum is None:
-                    tf_map.transform.translation = Vector3(utmpoint.easting, utmpoint.northing, 0.0)
-                else:
-                    geopoint = GeoPoint(self._datum[0], self._datum[1], 0.0)
-                    utmpoint = utm.fromMsg(geopoint)
-                    tf_map.transform.translation = Vector3(utmpoint.easting, utmpoint.northing, 0.0)
-                # Calculate grid convergence offset for master/datum point
-                gamma = calc_grid_convergence(utmpoint)
-                tf_map.transform.rotation = Quaternion(*Rotation.from_euler('xyz', [0, 0,
-                                                                                    gamma]).as_quat())
+                tf_map.transform.rotation = Quaternion(*q)
                 self._tf_bcast.sendTransform(tf_map)
-                self._tf_bcast.sendTransform(tf_loc)
         except ConnectionError as e:
             self.connection_error()
 
