@@ -10,14 +10,17 @@
     <include file="$(find bluerov2_ardusub)/launch/start_ardusub_vehi.launch"/>
 
     <include file="$(find bluerov2_control)/launch/switch_pro_teleop.launch" ns="bluerov2"/>
-    <include file="$(find waterlinked_gps)/launch/uwgps-bringup.launch" ns="bluerov2"/>
+    <include file="$(find waterlinked_gps)/launch/uwgps-bringup.launch" ns="bluerov2">
+                    <arg name="send_tf" value="true"/>
+    </include>
     <node type="rviz" pkg="rviz" name="rviz" args="-d $(find bluerov2_ardusub)/rviz/bluerov2_ardusub.rviz"/>
     <include file="$(find bluerov2_state_estimation)/launch/ekf.launch"/>
 
-    <node pkg="bluerov2_state_estimation" type="tf_manager.py" name="tf_manager">
+    <node pkg="bluerov2_state_estimation" type="tf_manager.py" name="tf_manager" ns="bluerov2">
         <param name="broadcast_rate" value="30.0"/>
         <param name="odom_frame_id" value="bluerov2/odom"/>
         <param name="static_map_odom" value="$(arg static_odom)"/>
+        <remap from="gps_datum" to="external/fix"/>
     </node>
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="odom2ned" args="0 0 0 0.707106781185 0.707106781185 0 0 bluerov2/odom bluerov2/odom_ned"/>
