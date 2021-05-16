@@ -9,9 +9,9 @@
   <arg name="rov" default = "rov"/>
   <arg name="gcs" default = "gcs"/>
   <arg name="ip_rov" default = "192.168.2.2"/>
-  <arg name="ip_gcs" default = "192.168.2.3"/>
+  <arg name="ip_gcs" default = "192.168.2.1"/>
   <arg name="rov_user" default = "pi"/>
-  <arg name="gcs_user" default = "fft"/>
+  <arg name="gcs_user" default = "obstec"/>
   
   <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
   <!-- ARGUMENTS -->

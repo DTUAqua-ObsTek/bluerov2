@@ -447,7 +447,9 @@ class SimpleCascade(object):
                                euler_error)
         euler_error = np.where(np.bitwise_and(np.abs(euler_error) > np.pi, euler_error > 0), euler_error - 2 * np.pi,
                                euler_error)
-
+        # TODO this gets set to None if load_waypoints gets called too quickly
+        if self._latest_ap_sp is None:
+            return False
         if self._latest_ap_sp.reference == self._latest_ap_sp.DEPTH:
             z_error = self._latest_ap_sp.Z - self._latest_odom_fb.pose.pose.position.z
             self._control_depth = True

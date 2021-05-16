@@ -156,7 +156,7 @@ class WaterlinkedGPS():
     def _forward_master_position(self, event):
         """ If an external gps topic is subscribed, forward the latitude and longitude over to waterlinked."""
         try:
-            r = self._session.put(self._gps_url, json=self._gps_msg, timeout=10)
+            r = self._session.put(self._gps_url, json=self._gps_msg, timeout=2)
             r = r.result(10)
         except Exception as e:
             rospy.logerr_throttle(10.0, "{} | {}".format(rospy.get_name(), e.message))
@@ -181,14 +181,14 @@ class WaterlinkedGPS():
         """ Callback function that requests Waterlinked status and config
         settings at a low rate. """
         # Request current time and use it for all messages
-        tnow = rospy.Time.now().to_sec()
+        tnow = rospy.Time.now()
         if self._is_first_slow_loop:
             self._is_first_slow_loop = False
             self.f_cum_slow = 0
             self.n_slow = 0
-            self._slow_t0 = tnow
+            self._slow_t0 = tnow.to_sec()
         else:
-            f = 1 / (tnow - self._slow_t0)
+            f = 1 / (tnow.to_sec() - self._slow_t0)
             self.f_cum_slow += f
             self.n_slow += 1
             f_avg = self.f_cum_slow / self.n_slow
