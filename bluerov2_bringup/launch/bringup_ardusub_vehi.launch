@@ -6,10 +6,14 @@
     <arg name="video_port" default="5600"/>
     <arg name="gscam_args" value="udpsrc port=$(arg video_port) ! application/x-rtp, encoding-name=H264 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! ffmpegcolorspace"/>
     <arg name="png_level" default="9"/>
+    <arg name="joystick_name" default="switchpro"/>
 
     <include file="$(find bluerov2_ardusub)/launch/start_ardusub_vehi.launch"/>
 
-    <include file="$(find bluerov2_control)/launch/switch_pro_teleop.launch" ns="bluerov2"/>
+    <!--<include file="$(find bluerov2_control)/launch/switch_pro_teleop.launch" ns="bluerov2"/>-->
+    <include file="$(find bluerov2_control)/launch/joystick_teleop.launch" ns="bluerov2">
+        <arg name="joystick_name" value="$(arg joystick_name)"/>
+    </include>
     <include file="$(find waterlinked_gps)/launch/uwgps-bringup.launch" ns="bluerov2">
                     <arg name="send_tf" value="true"/>
     </include>

@@ -9,6 +9,6 @@
 	<node pkg="rosbag" type="record" name="rosbag_record_cam" args="-o $(arg bag_dir)/video /bluerov2/nose_cam/camera_info /bluerov2/nose_cam/image_raw/compressed" output="log"/>
 
 	<!-- Record all data except camera feeds -->
-	<node pkg="rosbag" type="record" name="flight_data_recorder" args="-o $(arg bag_dir)/flightdata -a -x '/bluerov2/mavlink/(.*)|/bluerov2/nose_cam/(.*)|/bluerov2/image_view_node/(.*)'" output="log"/>
+	<node pkg="rosbag" type="record" name="flight_data_recorder" args="-o $(arg bag_dir)/flightdata -e '/bluerov2/(.*)' -x '/bluerov2/mavlink/(.*)|/bluerov2/nose_cam/(.*)|/bluerov2/image_view_node/(.*)'" output="log"/>
 
 </launch>

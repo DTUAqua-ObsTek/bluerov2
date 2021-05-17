@@ -1,0 +1,30 @@
+<launch>
+    <arg name="pi" value="3.14159265359"/>
+    <arg name="halfpi" value="1.57079632679"/>
+    <arg name="static_odom" value="False"/>
+    <arg name="stream_video" default="True"/>
+    <arg name="video_port" default="5600"/>
+    <arg name="gscam_args" value="udpsrc port=$(arg video_port) ! application/x-rtp, encoding-name=H264 ! rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! ffmpegcolorspace"/>
+    <arg name="png_level" default="6"/>
+
+    <include file="$(find bluerov2_ardusub)/launch/start_ardusub_vehi.launch"/>
+
+    <include file="$(find bluerov2_control)/launch/switch_pro_teleop.launch" ns="bluerov2"/>
+
+    <group ns="bluerov2">
+        <param name="nose_cam/image_raw/compressed/png_level" value="$(arg png_level)"/>
+        <node pkg="gscam" type="gscam" name="gscam" output="screen">
+            <param name="gscam_config" value="$(arg gscam_args)"/>
+            <param name="camera_name" value="nose_cam" />
+            <param name="camera_info_url" value="package://bluerov2_ardusub/calibrations/nose_cam.yaml" />
+            <remap from="camera/image_raw" to="nose_cam/image_raw" />
+        </node>
+        <node pkg="image_view" type="image_view" name="image_view_node">
+            <remap from="image" to="nose_cam/image_raw"/>
+            <param name="image_transport" value="compressed"/>
+        </node>
+    </group>
+
+
+
+</launch>
