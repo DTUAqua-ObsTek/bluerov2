@@ -17,7 +17,7 @@
     <include file="$(find waterlinked_gps)/launch/uwgps-bringup.launch" ns="bluerov2">
                     <arg name="send_tf" value="true"/>
     </include>
-    <node type="rviz" pkg="rviz" name="rviz" args="-d $(find bluerov2_ardusub)/rviz/bluerov2_ardusub.rviz"/>
+    <node type="rviz" pkg="rviz" name="rviz" args="-d $(find bluerov2_ardusub)/rviz/bluerov2_ardusub_v2.rviz"/>
     <include file="$(find bluerov2_state_estimation)/launch/ekf.launch"/>
 
     <node pkg="bluerov2_state_estimation" type="tf_manager.py" name="tf_manager" ns="bluerov2">
