@@ -1,13 +1,10 @@
 [Desktop Entry]
 Version=1.0
-Name=ROV Startup
+Name[en_US]=ROV Startup v2
 Comment=ROV Startup
-Exec=bash -c './Desktop/startup-v1.sh';bash
-#Exec=gnome-terminal -- "./Desktop/startup-v1.sh"
-#Exec=bash ./Desktop/startup-v1.sh
+Exec=bash -c '~/ros_ws/src/bluerov2/bluerov2_bringup/startup_scripts/startup-v1.sh';bash
 Terminal=true
 TerminalOptions=bash
 Type=Application
 Icon=/home/obstec/Pictures/rovicon.jpeg
 StartupNotify=true
-Name[en_US]=launch-rov-v2.desktop

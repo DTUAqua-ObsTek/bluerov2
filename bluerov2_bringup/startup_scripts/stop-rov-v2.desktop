@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name[en_US]=ROV Shutdown v2
+Comment=ROV Shutdown
+Exec=bash -c '~/ros_ws/src/bluerov2/bluerov2_bringup/startup_scripts/shutdown_rov-v2.sh'
+Terminal=true
+TerminalOptions=bash
+Type=Application
+Icon=/home/obstec/Pictures/rovstop.jpeg
+StartupNotify=true

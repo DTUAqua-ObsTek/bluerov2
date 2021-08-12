@@ -6,9 +6,5 @@ source /home/obstec/ardupilot/Tools/completion/completion.bash
 source /opt/ros/melodic/setup.bash
 source /home/obstec/ros_ws/devel/setup.bash
 
-#gnome-terminal -- roscore &
-#gnome-terminal -- /bin/bash -c 'rosrun bluerov2_bringup bringup_rov-v2.sh'
-
 source ~/ros_ws/src/bluerov2/bluerov2_bringup/startup_scripts/bringup_rov-v2.sh
 echo "Startup_rov: done"
-
