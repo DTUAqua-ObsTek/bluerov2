@@ -80,7 +80,7 @@ odom0: mavros/global_position/local
 # do not provide some of the state variables estimated by the filter. For example, a TwistWithCovarianceStamped message
 # has no pose information, so the first six values would be meaningless in that case. Each vector defaults to all false
 # if unspecified, effectively making this parameter required for each sensor.
-odom0_config: [false,  false,  true,
+odom0_config: [false, false,  true,
                false, false, false,
                false, false, false,
                false, false, false,
@@ -121,7 +121,7 @@ odom0_relative: false
 #odom0_twist_rejection_threshold: 1
 
 odom1: mavros/local_position/odom
-odom1_config: [false,  false,  true,
+odom1_config: [false, false, true,
                false, false, false,
                true, true, true,
                false, false, false,
@@ -133,7 +133,7 @@ odom1_relative: false
 
 # waterlinked GPS position (trust x and y)
 pose0: waterlinked/pose_with_cov_stamped
-pose0_config: [true,  true,  false,
+pose0_config: [true, true, false,
                false, false, false,
                false, false, false,
                false, false, false,

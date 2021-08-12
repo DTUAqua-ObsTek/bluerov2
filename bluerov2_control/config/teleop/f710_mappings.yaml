@@ -3,7 +3,7 @@ mappings:
     - axes[1]
     - axes[0] * -1.0
     - axes[4]
-    - axes[3]
+    - axes[3] * -1.0
     - axes[2]
     - axes[5]
 

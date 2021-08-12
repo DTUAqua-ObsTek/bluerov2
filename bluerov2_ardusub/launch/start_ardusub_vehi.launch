@@ -10,6 +10,10 @@
   <arg name="gcs" default = "gcs"/>
   <arg name="ip_rov" default = "192.168.2.2"/>
   <arg name="ip_gcs" default = "192.168.2.1"/>
+  <!--<arg name="ip_rov" default = "192.168.2.2"/>-->
+  <!--<arg name="ip_gcs" default = "192.168.2.1"/>-->
+  <!--<arg name="ip_rov" default = "10.16.154.89"/>-->
+  <!--<arg name="ip_gcs" default = "10.16.151.117"/>-->
   <arg name="rov_user" default = "pi"/>
   <arg name="gcs_user" default = "obstec"/>
   

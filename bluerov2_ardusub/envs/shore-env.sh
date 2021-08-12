@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 source /opt/ros/melodic/setup.bash
-source /home/fft/ros_ws/devel/setup.bash
+source /home/obstec/ros_ws/devel/setup.bash
 export ROS_MASTER_URI=http://192.168.2.1:11311
 export ROS_IP=192.168.2.1
+#export ROS_MASTER_URI=http://blue2shore.clients.wireless.dtu.dk:11311
+#export ROS_IP=10.16.151.117 
+#export ROS_IP=192.168.2.3
+#export ROS_HOSTNAME=blue2shore.clients.wireless.dtu.dk
 export DISPLAY=:0
 exec "$@"

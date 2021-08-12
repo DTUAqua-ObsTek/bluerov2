@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /TF1/Frames1
         - /FilteredState1/Shape1
         - /Image1
@@ -39,7 +40,7 @@ Visualization Manager:
       Cell Size: 1
       Class: rviz/Grid
       Color: 160; 160; 164
-      Enabled: true
+      Enabled: false
       Line Style:
         Line Width: 0.029999999329447746
         Value: Lines
@@ -52,12 +53,12 @@ Visualization Manager:
       Plane: XY
       Plane Cell Count: 100
       Reference Frame: map
-      Value: true
+      Value: false
     - Alpha: 0.5
       Cell Size: 1
       Class: rviz/Grid
       Color: 160; 160; 164
-      Enabled: false
+      Enabled: true
       Line Style:
         Line Width: 0.029999999329447746
         Value: Lines
@@ -70,7 +71,7 @@ Visualization Manager:
       Plane: XY
       Plane Cell Count: 100
       Reference Frame: waterlinked
-      Value: false
+      Value: true
     - Class: rviz/Axes
       Enabled: false
       Length: 1
@@ -170,22 +171,41 @@ Visualization Manager:
           Value: false
         bluerov2/odom_ned:
           Value: false
-        map:
+        earth:
+          Value: false
+        gopro:
           Value: true
+        gopro_optical:
+          Value: true
+        map:
+          Value: false
         map_ned:
           Value: false
+        nose_cam:
+          Value: true
+        nose_cam_optical:
+          Value: true
         odom:
           Value: false
         odom_ned:
           Value: false
+        utm:
+          Value: false
+        waterlinked:
+          Value: true
       Marker Scale: 50
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
+        earth:
+          utm:
+            {}
         map:
           map_ned:
+            {}
+          waterlinked:
             {}
       Update Interval: 0
       Value: true
@@ -235,7 +255,7 @@ Visualization Manager:
           Color: 204; 51; 204
           Scale: 1
           Value: true
-        Value: true
+        Value: false
       Enabled: true
       Keep: 1
       Name: FilteredState
@@ -300,7 +320,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: map
+    Fixed Frame: waterlinked
     Frame Rate: 30
   Name: root
   Tools:
@@ -323,7 +343,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0
+      Angle: -1.5700000524520874
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -333,8 +353,8 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 10.332184791564941
-      Target Frame: map
+      Scale: 22.30971908569336
+      Target Frame: waterlinked
       Value: TopDownOrtho (rviz)
       X: 0
       Y: 0

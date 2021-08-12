@@ -23,7 +23,10 @@
                     <arg name="send_tf" value="true"/>
     </include>
     <node type="rviz" pkg="rviz" name="rviz" args="-d $(find bluerov2_ardusub)/rviz/bluerov2_ardusub_v2.rviz"/>
+<<<<<<< HEAD
     <!--<node type="rviz" pkg="rviz" name="rviz" args="-d $(find bluerov2_ardusub)/rviz/bluerov2_ardusub.rviz"/>-->
+=======
+>>>>>>> 7dafefd654bcdf36cc80fb6ebedf7d5de12c4838
     <include file="$(find bluerov2_state_estimation)/launch/ekf.launch"/>
 
     <node pkg="bluerov2_state_estimation" type="tf_manager.py" name="tf_manager" ns="bluerov2">
