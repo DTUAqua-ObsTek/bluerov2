@@ -41,7 +41,7 @@ In general, you can use the following to see the entire set of possible argument
 
 `rostopic -h`
 or
-`rosnode h`
+`rosnode -h`
 
 You can also visualise the connection graph using 
 `rosrun rqt_graph rqt_graph`
