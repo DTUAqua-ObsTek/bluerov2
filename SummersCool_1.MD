@@ -18,13 +18,13 @@ The launch also pops up two windows - RQT Publisher and RQT Service Caller.
 
 **Joystick controls for manual control**
 
-Once the ROS stack is up and running, we can get started with the joystick. The ROV can be armed using the **start** button and disarmed using the --- button.
+Once the ROS stack is up and running, we can get started with the joystick. The ROV can be armed using the **start** button and disarmed using the **back** button.
 
 <p align="center">
   <img src="doc/imgs/joystick.jpg">
 </p>
 
-## Automatic control modes##
+## Automatic control modes ##
 
 Now that you have a basic understanding of ROV teleoperation, you can try setting control modes for simple Line Of Sight (LOS) based navigation. 
 
