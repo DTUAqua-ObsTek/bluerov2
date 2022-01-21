@@ -2,11 +2,11 @@
 import rospy
 from nav_msgs.msg import Odometry  # We listen to this message for state estimation
 from geometry_msgs.msg import AccelWithCovarianceStamped, WrenchStamped, AccelStamped, TwistStamped, PoseStamped, Vector3Stamped, Vector3, Twist, PointStamped, Point
-from PID import PIDRegulator
+from bluerov2_control.pid import MIMOPID
 from mavros_msgs.srv import SetMode, SetModeRequest
 import numpy as np
 from bluerov2_control.srv import SetControlMode, SetControlModeResponse, SetControlModeRequest
-from bluerov2_control.msg import ControlMode, Autopilot, FollowWaypointsAction, FollowWaypointsGoal, FollowWaypointsFeedback, FollowWaypointsResult
+from bluerov2_control.msg import ControlMode, Autopilot, FollowWaypointsAction, FollowWaypointsGoal, FollowWaypointsFeedback, FollowWaypointsResult, Waypoint, WaypointSet
 from tf2_ros import Buffer, TransformListener
 from std_msgs.msg import Header
 import tf2_geometry_msgs
@@ -15,46 +15,8 @@ from dynamic_reconfigure.server import Server
 from bluerov2_control.cfg import pid_reconfigConfig
 from sensor_msgs.msg import Range
 import actionlib
-from uuv_control_msgs.msg import Waypoint, WaypointSet
+
 from math import atan2
-
-
-class MIMOPID(object):
-    def __init__(self, *args):
-        self._regulators = [PIDRegulator(*arg) for arg in args]
-
-    def set_p(self, gains):
-        for r, g in zip(self._regulators, gains):
-            r.p = g
-
-    def get_p(self):
-        return [r.p for r in self._regulators]
-
-    def set_i(self, gains):
-        for r, g in zip(self._regulators, gains):
-            r.i = g
-            r.integral = 0
-
-    def get_i(self):
-        return [r.i for r in self._regulators]
-
-    def set_d(self, gains):
-        for r, g in zip(self._regulators, gains):
-            r.d = g
-
-    def get_d(self):
-        return [r.d for r in self._regulators]
-
-    def set_sat(self, sats):
-        for r, s in zip(self._regulators, sats):
-            r.sat = s
-            r.integral = 0
-
-    def get_sat(self):
-        return [r.sat for r in self._regulators]
-
-    def __call__(self, errors, t):
-        return np.array([r.regulate(e, t) for r, e in zip(self._regulators, errors)], dtype=float)
 
 
 class SimpleCascade(object):
@@ -370,10 +332,10 @@ class SimpleCascade(object):
 
     def _calc_3D_distance(self):
         if self._latest_wp is None:
-            rospy.logwarn_throttle(10.0, "{} | No waypoint provided.".format(rospy.get_name()))
+            rospy.logwarn_throttle(10.0, "{} | No waypoint provided, cannot compute distance.".format(rospy.get_name()))
             return False
         if self._latest_odom_fb is None:
-            rospy.logwarn_throttle(10.0, "{} | No odom feedback.".format(rospy.get_name()))
+            rospy.logwarn_throttle(10.0, "{} | No odom feedback, cannot compute distance..".format(rospy.get_name()))
             return False
         """
         Calculate euclidean distance from waypoint to vehicle's 3D position here

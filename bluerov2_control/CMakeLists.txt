@@ -10,14 +10,13 @@ project(bluerov2_control)
 ## ADDED
 find_package(catkin REQUIRED COMPONENTS
   rospy
-  roscpp
   geographic_msgs
   geodesy
   geometry_msgs
   message_generation
   dynamic_reconfigure
-  uuv_control_msgs
   actionlib_msgs
+  mavros_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -28,7 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 ## ADDED
-#catkin_python_setup()
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -59,6 +58,8 @@ add_message_files(
   FILES
   ControlMode.msg
   Autopilot.msg
+  Waypoint.msg
+  WaypointSet.msg
 )
 
 # Generate services in the 'srv' folder
@@ -79,7 +80,6 @@ generate_messages(
   DEPENDENCIES
   geographic_msgs
   geometry_msgs
-  uuv_control_msgs
   actionlib_msgs
 )
 

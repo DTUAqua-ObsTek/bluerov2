@@ -4,16 +4,34 @@ The following steps are a checklist for ensuring you are able to use the open-so
 
 ## Install Ubuntu ##
 
-You may skip this step if Ubuntu 18.04 is already installed on your machine.
+You may skip this step if Ubuntu 20.04 is already installed on your machine.
 
-- OS: Ubuntu 20.04, see [Download Page](https://releases.ubuntu.com/18.04/) and [This Installation Guide for Dual Boot](https://help.ubuntu.com/community/WindowsDualBoot)
+- OS: Ubuntu 20.04, see [Download Page](https://releases.ubuntu.com/20.04/) and [This Installation Guide for Dual Boot](https://help.ubuntu.com/community/WindowsDualBoot)
 - Configure Wi-Fi: If using DTU's DTUSecure or Eduroam WiFi networks, then follow the configuration instructions [Here](https://itswiki.compute.dtu.dk/index.php/DTUsecure_WiFi)
+
+## Quick Start ##
+
+Run the script [convenient_install.sh](convenient_install.sh):
+
+`. convenient_install.sh`
 
 ## Install Robot Operating System ##
 
-- Melodic Morenia: Follow the installation instructions [Here](http://wiki.ros.org/melodic/installation/Ubuntu), make sure to specify ros-melodic-desktop-full when installing.
+- Noetic Ninjemys: Follow the installation instructions [Here](http://wiki.ros.org/noetic/Installation/Ubuntu), make sure to specify ros-noetic-desktop-full when installing.
 
-### ROS Packages ###
+### ROS Package Installation ###
+
+First, create a ROS workspace:
+
+`mkdir -p $HOME/ros_ws/src && cd $HOME/ros_ws/src && catkin_init_workspace`
+
+Clone the bluerov2 repository to the workspace:
+
+`git clone https://github.com/DTUAqua-ObsTek/bluerov2.git`
+
+Next, run the install.sh script:
+
+`./install.sh`
 
 - UUV Simulator: Follow the installation instructions [Here](https://uuvsimulator.github.io/installation/)
 - MAVROS: Follow the installation instructions [Here](https://github.com/mavlink/mavros/blob/master/mavros/README.md#installation)

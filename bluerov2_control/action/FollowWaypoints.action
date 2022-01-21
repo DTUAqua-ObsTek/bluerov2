@@ -1,5 +1,5 @@
 # Define the goal
-uuv_control_msgs/WaypointSet waypoints
+bluerov2_control/WaypointSet waypoints
 ---
 # Define the result
 uint32 waypoints_completed

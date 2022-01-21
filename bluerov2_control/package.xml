@@ -24,7 +24,6 @@
   <build_depend>message_generation</build_depend>
   <build_depend>geodesy</build_depend>
   <build_depend>dynamic_reconfigure</build_depend>
-  <build_depend>uuv_control_msgs</build_depend>
   <build_depend>actionlib_msgs</build_depend>
   <build_export_depend>diagnostic_msgs</build_export_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
@@ -38,7 +37,6 @@
   <build_export_depend>geographic_msgs</build_export_depend>
   <build_export_depend>geodesy</build_export_depend>
   <build_export_depend>dynamic_reconfigure</build_export_depend>
-  <build_export_depend>uuv_control_msgs</build_export_depend>
   <build_export_depend>actionlib_msgs</build_export_depend>
   <exec_depend>diagnostic_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
@@ -53,8 +51,8 @@
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>geodesy</exec_depend>
   <exec_depend>dynamic_reconfigure</exec_depend>
-  <exec_depend>uuv_control_msgs</exec_depend>
   <exec_depend>actionlib_msgs</exec_depend>
+  <exec_depend>python3-scipy</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

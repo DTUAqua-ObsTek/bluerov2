@@ -1,0 +1,4 @@
+[submodule "imc_ros_bridge"]
+	path = imc_ros_bridge
+	url = https://github.com/FletcherFT/imc_ros_bridge.git
+	branch = noetic-devel
