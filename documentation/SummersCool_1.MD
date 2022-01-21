@@ -21,7 +21,7 @@ The launch also pops up two windows - RQT Publisher and RQT Service Caller.
 Once the ROS stack is up and running, we can get started with the joystick. The ROV can be armed using the **start** button and disarmed using the **back** button.
 
 <p align="center">
-  <img src="doc/imgs/joystick.jpg">
+  <img src="imgs/joystick.jpg">
 </p>
 
 ## Automatic control modes ##
@@ -33,7 +33,7 @@ Refer to **ros_commands** tutorial for some help with basic shell scripting.
 The RQT Service Caller provides a user interface to call arbitrary services to and from certain nodes in the ROS network. In this case, the bluerov2/controller/set_control_mode/ service is called to set different set-point control modes.
 
 <p align="center">
-  <img src="doc/imgs/rqt_service.jpg">
+  <img src="imgs/rqt_service.jpg">
 </p>
 
 
@@ -53,7 +53,7 @@ Once the desired control mode has been set, the RQT_Publisher can be used to pub
 Fx, in case of acceleration setpoint control, the topic would be bluerov2/accel/setpoint.
 
 <p align="center">
-  <img src="doc/imgs/rqt_publisher.jpg">
+  <img src="imgs/rqt_publisher.jpg">
 </p>
 
 Once the arguments have been published to the topic (remember to check the box for the topic you want to publish to) , the ROV should (fingers crossed) move with the appropriate heading and speed.

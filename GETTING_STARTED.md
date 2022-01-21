@@ -6,7 +6,7 @@ The following steps are a checklist for ensuring you are able to use the open-so
 
 You may skip this step if Ubuntu 18.04 is already installed on your machine.
 
-- OS: Ubuntu 18.04 (not Ubuntu 20.04), see [Download Page](https://releases.ubuntu.com/18.04/) and [This Installation Guide for Dual Boot](https://help.ubuntu.com/community/WindowsDualBoot)
+- OS: Ubuntu 20.04, see [Download Page](https://releases.ubuntu.com/18.04/) and [This Installation Guide for Dual Boot](https://help.ubuntu.com/community/WindowsDualBoot)
 - Configure Wi-Fi: If using DTU's DTUSecure or Eduroam WiFi networks, then follow the configuration instructions [Here](https://itswiki.compute.dtu.dk/index.php/DTUsecure_WiFi)
 
 ## Install Robot Operating System ##

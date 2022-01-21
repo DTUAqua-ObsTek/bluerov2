@@ -11,13 +11,13 @@ The [Unmanned Underwater Vehicle Simulator](https://uuvsimulator.github.io/) (UU
 This repository is intended as introductory marine vehicle simulation software for the 2021 Spring Special Course "Autonomous Marine Robotics" hosted at the Technical University of Denmark.
 
 <p align="center">
-  <img src="doc/imgs/bluerov2_uuv_simulator.png">
+  <img src="documentation/imgs/bluerov2_uuv_simulator.png">
 </p>
 
 
 ## Getting Started ## 
 
-The repository was built and tested on a fresh installation of Ubuntu 18.04. The [Getting Started Guide](GETTING_STARTED.md) will assist with installation of dependencies and testing. 
+The repository was built and tested on a fresh installation of Ubuntu 20.04. The [Getting Started Guide](GETTING_STARTED.md) will assist with installation of dependencies and testing. 
 Tutorials [01](TUTORIAL-01.md) and [08](TUTORIAL-08.md) are intended for students enrolled in Autonomous Marine Robotics special course at DTU. The [simulation tutorial](SIMULATION_TUTORIAL.md) gives a quick start guide for people interested in using the simulations.
 
 ## Additional Links ##
@@ -28,7 +28,7 @@ Tutorials [01](TUTORIAL-01.md) and [08](TUTORIAL-08.md) are intended for student
 
 ## Topics
 
-If you need more information about the topics and what you can access, take a look [here](doc/topics_and_data.md).
+If you need more information about the topics and what you can access, take a look [here](documentation/topics_and_data.md).
 
 
 ## License
