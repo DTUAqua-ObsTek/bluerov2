@@ -9,11 +9,13 @@ You may skip this step if Ubuntu 20.04 is already installed on your machine.
 - OS: Ubuntu 20.04, see [Download Page](https://releases.ubuntu.com/20.04/) and [This Installation Guide for Dual Boot](https://help.ubuntu.com/community/WindowsDualBoot)
 - Configure Wi-Fi: If using DTU's DTUSecure or Eduroam WiFi networks, then follow the configuration instructions [Here](https://itswiki.compute.dtu.dk/index.php/DTUsecure_WiFi)
 
-## Quick Start ##
+## Quick Install ##
 
 Run the script [convenient_install.sh](convenient_install.sh):
 
-`. convenient_install.sh`
+`. convenient_install.sh
+
+## Slow Start (If you want to install each component yourself) ##`
 
 ## Install Robot Operating System ##
 
@@ -27,20 +29,23 @@ First, create a ROS workspace:
 
 Clone the bluerov2 repository to the workspace:
 
-`git clone https://github.com/DTUAqua-ObsTek/bluerov2.git`
+`git clone https://github.com/DTUAqua-ObsTek/bluerov2.git && cd bluerov2`
 
-Next, run the install.sh script:
+Checkout the submodules
 
-`./install.sh`
+`git submodule update --init --recursive`
 
-- UUV Simulator: Follow the installation instructions [Here](https://uuvsimulator.github.io/installation/)
-- MAVROS: Follow the installation instructions [Here](https://github.com/mavlink/mavros/blob/master/mavros/README.md#installation)
-	- NOTE: replace "kinetic" with "melodic" in the apt-get install commands. 
-	- NOTE: Make sure to install the GeographicLib datasets after installing mavros! You will have to execute ´´´sudo ./install_geographiclib_datasets.sh"´´´
-- BlueROV2 Gazebo and ArduSub Modelling
-	1. Follow instructions to create a new ROS workspace [Here (choose Melodic)](http://wiki.ros.org/catkin/Tutorials/create_a_workspace).
-	2. Clone this repository into your workspace's src directory (called `catkin_ws/src` in this guide) `git clone https://github.com/FletcherFT/bluerov2.git`
-	3. Execute `catkin_make` in the top-level directory of `catkin_ws`.
+Then install dependencies:
+
+`cd .. && rosdep install --from-paths src -i && sudo apt install python3-catkin-tools`
+
+Then build the workspace:
+
+`catkin build`
+
+Next, make sure to install the support libraries for MAVROS:
+
+`sudo /opt/ros/noetic/lib/mavros/install_geogrpahiclib_datasets.sh`
 
 ## Install Ardusub Software-In-The-Loop ##
 
@@ -63,11 +68,6 @@ NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Ninte
 
 - ArduSub SITL: Follow the instructions [Here](https://www.ardusub.com/developers/sitl.html) and launch a SITL simulation.
 - QGroundControl: Double Click on APP, configure joystick.
-
-## Test UUV Simulator ##
-
-- Open ~/.ignition/fuel/config.yaml, replace "api.ignitionfuel.org" with "fuel.ignitionrobotics.org"
-- Follow instructions [Here](https://uuvsimulator.github.io/quick_start)
 
 ## Test ArduSub SITL and MAVROS ##
 
