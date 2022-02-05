@@ -1,0 +1,55 @@
+mappings:
+    # map from joystick axes to FCU axes
+    axes:
+        - axes[1]         # Forward/Reverse
+        - axes[0] * -1.0  # Right/left
+        - axes[3]         # Down/Up
+        - axes[2] * -1.0  # YawRight/YawLeft
+    # maps from joystick buttons [0-17] to BTNn (note: positions > 15 are not supported by ardusub)
+    buttons:
+        - buttons[0]
+        - buttons[1]
+        - buttons[2]
+        - buttons[3]
+        - buttons[4]
+        - buttons[5]
+        - buttons[6]
+        - buttons[7]
+        - buttons[8]
+        - buttons[9]
+        - buttons[13]
+        - buttons[12]
+        - max(axes[4],0.0)
+        - min(axes[4],0.0) * -1.0
+        - min(axes[5],0.0) * -1.0
+        - max(axes[5],0.0)
+        - buttons[10]
+        - buttons[11]
+
+    # maps from fcu BTNn to a function (see bluerov2_ardusub.enums for enumerations)
+    # positions above 15 (zero indexed) are not used
+    functions:
+        - mode_depth_hold
+        - custom_1
+        - mode_manual
+        - mode_stabilize
+        - mount_tilt_down
+        - mount_tilt_up
+        - lights1_dimmer
+        - lights1_brighter
+        - disarm
+        - arm
+        - roll_pitch_toggle
+        - mount_center
+        - gain_dec
+        - gain_inc
+        - disabled
+        - disabled
+
+    params:
+        JS_GAIN_MIN:
+            0.1
+        JS_GAIN_MAX:
+            1.0
+        JS_GAIN_STEPS:
+            10

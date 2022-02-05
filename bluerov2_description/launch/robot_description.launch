@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<launch>
+    <arg name="variant" default="default"/>
+    <arg name="namespace" default="bluerov2"/>
+    <param name="robot_description"
+             command="$(find xacro)/xacro '$(find bluerov2_description)/robots/rviz/bluerov2_$(arg variant).xacro' namespace:=$(arg namespace)" />
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    </node>
+</launch>

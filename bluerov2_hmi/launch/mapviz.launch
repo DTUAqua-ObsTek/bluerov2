@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<launch>
+    <node pkg="mapviz" type="mapviz" name="mapviz" output="screen">
+    </node>
+    <node pkg="swri_transform_util" type="initialize_origin.py" name="init_origin">
+        <param name="local_xy_frame" value="bluerov2/map"/>
+        <param name="local_xy_frame_origin" value="auto"/>
+        <param name="local_xy_navsatfix_topic" value="waterlinked/position/master"/>
+    </node>
+</launch>

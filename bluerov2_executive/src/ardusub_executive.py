@@ -2,8 +2,8 @@
 
 
 import rospy
-from bluerov2_control.srv import ConvertGeoPoints, ConvertGeoPointsRequest, SetControlMode, SetControlModeRequest
-from bluerov2_control.msg import FollowWaypointsGoal, FollowWaypointsResult, FollowWaypointsAction, FollowWaypointsFeedback
+from bluerov2_msgs.srv import ConvertGeoPoints, ConvertGeoPointsRequest, SetControllerState, SetControllerStateRequest
+from bluerov2_msgs.msg import FollowWaypointsGoal, FollowWaypointsResult, FollowWaypointsAction, FollowWaypointsFeedback
 from geometry_msgs.msg import Pose, Point
 from geographic_msgs.msg import GeoPoint
 from std_msgs.msg import Empty, Time, String, Header
@@ -12,15 +12,22 @@ from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry
 from scipy.spatial.transform import Rotation
 from tf2_ros import Buffer, TransformListener
-from uuv_control_msgs.msg import Waypoint, WaypointSet
-from uuv_control_msgs.srv import InitWaypointSet, InitWaypointSetRequest, InitWaypointSetResponse
+from mavros_msgs.msg import Waypoint, WaypointList
 import numpy as np
 import imc_enums
 import hashlib
-from StringIO import StringIO
+from io import StringIO
 import time
 import actionlib
 from actionlib_msgs.msg import GoalStatus
+
+
+class MainInterface:
+    """
+    This object exposes services to operate an actionlib client for the guidance, navigation, control structure.
+    """
+    def __init__(self):
+        pass
 
 
 class ImcInterface(object):
@@ -107,7 +114,7 @@ class ImcInterface(object):
             wp.radius_of_acceptance = 1.0
             wp.max_forward_speed = speed
             wp.use_fixed_heading = False
-            wp.heading_offset = 0.0
+            wp.master_heading_offset = 0.0
             wps.append(wp)
         req = InitWaypointSetRequest()
         req.start_time = Time(rospy.Time.from_sec(0))
@@ -115,7 +122,7 @@ class ImcInterface(object):
         req.waypoints = wps
         req.max_forward_speed = max(speeds)
         req.interpolator.data = "lipb"
-        req.heading_offset = 0
+        req.master_heading_offset = 0
         self._send_goal(req)
 
     def _handle_plan_control(self, msg):

@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+import rospy
+from bluerov2_guidance import LineOfSight
+
+
+if __name__ == "__main__":
+    rospy.init_node("guidance")#, log_level=rospy.DEBUG)
+    try:
+        guidance = LineOfSight()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass

@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="sitl" default="false" doc="Use simulator if true, otherwise try to connect to vehicle."/>
+    <arg name="navigation_aid" doc="Choose between fake GPS, waterlinked GPS, or microranger 2 USBL: [fake, waterlinked, microranger2]"/>
+
+    <arg name="waterlinked_ip" default="192.168.2.94"/>
+    <arg name="waterlinked_port" default="80"/>
+    <arg name="fake_master_datum" default="[63.44270945305238, 10.423492611347429, 39.860397101985086]"/>
+    <arg name="fake_master_heading" default="0"/>
+    <arg name="joystick_type" doc="Supported types: [disabled, f310, f710, keyboard, switchpro]"/>
+    <arg name="external_gps" doc="Indicate presence of external gps" default="false"/>
+    <arg name="rviz" doc="Show rviz if true" default="false"/>
+    <arg name="mapviz" doc="Show mapviz if true" default="true"/>
+    <arg name="remote_launch" doc="Launch mavros on remote machine." default="false"/>
+    <arg name="robot_name" doc="Namespace for the platform." default="bluerov2"/>
+    <arg name="neptus" doc="Launch neptus bridge." default="false"/>
+    <arg name="waterlinked_frame_id" doc="Frame name for the waterlinked nodes." default="waterlinked"/>
+    <arg name="earth_frame_id" doc="Frame name for the earth reference." default="ecef"/>
+    <arg name="dev_mode" doc="Bring up GUIs to tune PID and call services/publish to topics." default="false"/>
+
+    <arg name="pi" value="3.14159265359"/>
+    <arg name="halfpi" value="1.57079632679"/>
+
+    <group ns="$(arg robot_name)">
+
+        <param name="earth_frame_id" value="$(arg earth_frame_id)"/>
+        <param name="map_frame_id" value="$(arg robot_name)/map"/>
+        <param name="map_ned_frame_id" value="$(arg robot_name)/map_ned"/>
+        <param name="base_frame_id" value="$(arg robot_name)/base_link"/>
+        <param name="waterlinked_frame_id" value="$(arg waterlinked_frame_id)"/>
+        <param name="nose_camera_frame_id" value="$(arg robot_name)/nose_cam"/>
+        <param name="geoid_path" value="/usr/share/GeographicLib/geoids/egm96-5.pgm"/>
+
+        <!-- RViz Node -->
+        <node if="$(arg rviz)" type="rviz" pkg="rviz" name="rviz" args="-d $(find bluerov2_ardusub)/rviz/bluerov2_ardusub.rviz"/>
+
+        <!-- Mavros with ardusub SITL-->
+        <group if="$(arg sitl)">
+            <include file="$(find bluerov2_ardusub)/launch/start_ardusub_sitl.launch"/>
+        </group>
+
+        <!-- Mavros with a remote machine -->
+        <group unless="$(arg sitl)">
+            <group if="$(arg remote_launch)">
+                <include file="$(find bluerov2_ardusub)/launch/start_ardusub_vehi.launch">
+                    <arg name="ip" value="$(arg remote_ip)"/>
+                </include>
+            </group>
+        </group>
+
+        <!-- Fake waterlinked node. -->
+        <node if="$(eval arg('navigation_aid') == 'fake')" type="fake_waterlinked.py" pkg="waterlinked_gps" name="fake_waterlinked" output="screen">
+            <remap from="waterlinked/home" to="mavros/home_position/set"/>
+            <param name="heading" value="$(arg fake_master_heading)"/>
+            <rosparam param="datum" subst_value="true">$(arg fake_master_datum)</rosparam>
+        </node>
+
+        <!-- Waterlinked GPS node. -->
+        <node if="$(eval arg('navigation_aid') == 'waterlinked')" pkg="waterlinked_gps" type="waterlinked_gps_node.py" name="waterlinked_gps_node" output="screen">
+            <remap from="waterlinked/home" to="mavros/home_position/set"/>
+            <remap from="waterlinked/external/depth" to="mavros/global_position/rel_alt"/>
+            <param name="ip" value="$(arg waterlinked_ip)"/>
+            <param name="port" value="$(arg waterlinked_port)"/>
+        </node>
+
+        <!-- Nodes to assist with neptus interface -->
+        <group if="$(arg neptus)">
+            <include file="$(find bluerov2_executive)/launch/bluerov2_executive.launch"/>
+            <include file="$(find bluerov2_neptus)/launch/neptus.launch"/>
+        </group>
+
+        <!-- Guidance Node -->
+        <node pkg="bluerov2_guidance" type="los_guidance.py" name="guidance">
+            <remap from="guidance/autopilot" to="autopilot/setpoint"/>
+        </node>
+
+        <!-- Navigation Nodes -->
+        <group if="$(arg external_gps)">
+            <include file="$(find bluerov2_navigation)/launch/external_gps.launch">
+                <arg name="frame_id" value="$(arg waterlinked_frame_id)"/>
+            </include>
+        </group>
+
+        <!-- Launch model description (important for generation of tf frames) -->
+        <include file="$(find bluerov2_description)/launch/robot_description.launch">
+            <arg name="namespace" value="$(arg robot_name)"/>
+        </include>
+
+        <!-- NED Transformation Node -->
+        <node pkg="tf2_ros" type="static_transform_publisher" name="map2ned" args="0 0 0 0.707106781185 0.707106781185 0 0 $(arg robot_name)/map $(arg robot_name)/map_ned"/>
+
+        <!-- Control -->
+        <include file="$(find bluerov2_control)/launch/controller_4dof.launch"/>
+
+        <!-- Nodes for teleoperation and interfacing with mavros -->
+        <include file="$(find bluerov2_control)/launch/teleop.launch">
+            <arg name="joystick_type" value="$(arg joystick_type)"/>
+        </include>
+
+        <!-- Nodes for low-level configuration and testing -->
+        <group if="$(arg dev_mode)">
+            <!-- Service interface -->
+            <node pkg="rqt_service_caller" type="rqt_service_caller" name="service_caller"/>
+            <!-- Publish interface -->
+            <node pkg="rqt_publisher" type="rqt_publisher" name="publisher"/>
+            <!-- Node for parameter adjustments -->
+            <node pkg="rqt_reconfigure" type="rqt_reconfigure" name="dyn_reconfigure"/>
+        </group>
+
+        <!-- Node for displaying map information -->
+        <group if="$(arg mapviz)">
+            <include file="$(find bluerov2_hmi)/launch/mapviz.launch"/>
+        </group>
+
+        <!-- Image Handling and display-->
+        <node pkg="image_transport" type="republish" name="local_image_pub" args="compressed in:=nose_cam/image_raw raw out:=nose_cam_repub/image_raw"/>
+        <!-- HUD Overlay -->
+        <node pkg="bluerov2_hmi" type="hud_overlay_node.py" name="hud_overlay_node">
+            <remap from="image_in/camera_info" to="nose_cam_repub/camera_info"/>
+            <remap from="image_in/image_raw" to="nose_cam_repub/image_raw"/>
+            <remap from="image_out/image_raw" to="nose_cam_repub/image_annotated_raw"/>
+        </node>
+        <!-- Image display -->
+        <node pkg="image_view" type="image_view" name="pilot_viewer">
+            <remap from="image" to="nose_cam_repub/image_annoted_raw"/>
+            <param name="image_transport" value="raw"/>
+        </node>
+        <!-- Publish position of camera on tf via Joint State -->
+        <node pkg="bluerov2_navigation" type="camera_tf.py" name="camera_tf_node">
+
+        </node>
+
+
+    </group>
+
+</launch>

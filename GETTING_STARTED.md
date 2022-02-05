@@ -13,31 +13,42 @@ You may skip this step if Ubuntu 20.04 is already installed on your machine.
 
 Run the script [convenient_install.sh](convenient_install.sh):
 
-`. convenient_install.sh
+`. convenient_install.sh`
 
-## Slow Start (If you want to install each component yourself) ##`
+## Slow Install (If you want to install each component yourself) ##
 
-## Install Robot Operating System ##
+### Install Robot Operating System ###
 
 - Noetic Ninjemys: Follow the installation instructions [Here](http://wiki.ros.org/noetic/Installation/Ubuntu), make sure to specify ros-noetic-desktop-full when installing.
 
 ### ROS Package Installation ###
 
-First, create a ROS workspace:
+Create a ROS workspace:
 
-`mkdir -p $HOME/ros_ws/src && cd $HOME/ros_ws/src && catkin_init_workspace`
+```
+mkdir -p $HOME/ros_ws/src
+cd $HOME/ros_ws/src
+catkin_init_workspace
+```
 
 Clone the bluerov2 repository to the workspace:
 
-`git clone https://github.com/DTUAqua-ObsTek/bluerov2.git && cd bluerov2`
+```
+git clone https://github.com/DTUAqua-ObsTek/bluerov2.git
+cd bluerov2
+```
 
-Checkout the submodules
+Checkout the submodules:
 
 `git submodule update --init --recursive`
 
 Then install dependencies:
 
-`cd .. && rosdep install --from-paths src -i && sudo apt install python3-catkin-tools`
+```
+cd ..
+rosdep install --from-paths src -i
+sudo apt install python3-catkin-tools
+```
 
 Then build the workspace:
 
@@ -52,11 +63,12 @@ Next, make sure to install the support libraries for MAVROS:
 - SITL: Follow the installation instructions [Starting Here, and Be Sure to Follow Links](https://ardupilot.org/dev/docs/setting-up-sitl-on-linux.html).
 	- NOTE: Follow "Cloning with the command line" section for minimum fuss. When moving on to the [BUILD.md](https://github.com/ArduPilot/ardupilot/blob/master/BUILD.md) section, you do not have to clone ardupilot again. 
 	
-- ArduSub Configuration: run 
+- ArduSub Configuration: 
 
-`./waf configure --board sitl`
-
-`./waf sub`
+	```
+	./waf configure --board sitl
+	./waf sub
+ 	```
 
 ## Install QGroundControl ##
 
@@ -64,7 +76,7 @@ Next, make sure to install the support libraries for MAVROS:
 
 ## Test ArduSub SITL and QGroundControl ##
 
-NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Nintendo Switch Pro, Playstation etc.), or a joystick-keyboard emulator for linux such as [QJoyPad](http://qjoypad.sourceforge.net/)
+NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Nintendo Switch Pro, Playstation etc.), or a joystick-keyboard emulator for linux such as [wejoy](https://github.com/Vantskruv/wejoy).
 
 - ArduSub SITL: Follow the instructions [Here](https://www.ardusub.com/developers/sitl.html) and launch a SITL simulation.
 - QGroundControl: Double Click on APP, configure joystick.

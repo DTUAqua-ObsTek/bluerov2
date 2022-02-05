@@ -31,7 +31,6 @@
   <arg name="config_yaml" value="$(find bluerov2_ardusub)/config/apm_config.yaml"/>
   <arg name="log_output" value="log"/>
   <arg name="updaterate" value="10"/>
-  <arg name="launch_mavros" default="true"/>
   <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
   <!-- END ARGUMENTS -->
   <!-- :::::::::::::::::::::::::::::::::::::::::::: -->
@@ -50,17 +49,15 @@
     <rosparam command="load" file="$(arg pluginlists_yaml)"/>
     <rosparam command="load" file="$(arg config_yaml)"/>
   </group>
-  <group if="$(arg launch_mavros)">
-    <node machine="$(arg rov)" pkg="mavros" type="mavros_node" name="mavros" required="true" clear_params="true" output="screen" ns="bluerov2">
-        <param name="fcu_url" value="$(arg fcu_url)"/>
-        <param name="gcs_url" value="$(arg gcs_url)"/>
-        <param name="system_id" value="$(arg system_id)"/>
-        <param name="component_id" value="$(arg component_id)"/>
-        <param name="target_system_id" value="$(arg tgt_system)"/>
-        <param name="target_component_id" value="$(arg tgt_component)"/>
-    </node>
-    <!-- Set the stream rate of mavros -->
-    <node ns="bluerov2" machine="$(arg rov)" pkg="rosservice" type="rosservice" name="mavros_set_stream" args="call --wait /bluerov2/mavros/set_stream_rate 0 $(arg updaterate) 1"/>
-  </group>
+  <node machine="$(arg rov)" pkg="mavros" type="mavros_node" name="mavros" required="true" clear_params="true" output="screen" ns="bluerov2">
+      <param name="fcu_url" value="$(arg fcu_url)"/>
+      <param name="gcs_url" value="$(arg gcs_url)"/>
+      <param name="system_id" value="$(arg system_id)"/>
+      <param name="component_id" value="$(arg component_id)"/>
+      <param name="target_system_id" value="$(arg tgt_system)"/>
+      <param name="target_component_id" value="$(arg tgt_component)"/>
+  </node>
+  <!-- Set the stream rate of mavros -->
+  <node ns="bluerov2" machine="$(arg rov)" pkg="rosservice" type="rosservice" name="mavros_set_stream" args="call --wait /bluerov2/mavros/set_stream_rate 0 $(arg updaterate) 1"/>
   
 </launch>

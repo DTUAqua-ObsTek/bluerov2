@@ -100,7 +100,7 @@ class ImcInterface(object):
                 wp.radius_of_acceptance = 3.0
                 wp.max_forward_speed = speed
                 wp.use_fixed_heading = False
-                wp.heading_offset = 0.0
+                wp.master_heading_offset = 0.0
                 wps.append(wp)
         # If datum is not given, then reference frame is ENU UTM TODO: LOOKUP TRANSFORM
         else:
@@ -114,7 +114,7 @@ class ImcInterface(object):
                 wp.radius_of_acceptance = 3.0
                 wp.max_forward_speed = speed
                 wp.use_fixed_heading = False
-                wp.heading_offset = 0.0
+                wp.master_heading_offset = 0.0
                 wps.append(wp)
         self.STATE = PlanControlState.READY
         req = InitWaypointSetRequest()
@@ -123,7 +123,7 @@ class ImcInterface(object):
         req.waypoints = wps
         req.max_forward_speed = max(speeds)
         req.interpolator.data = "lipb"
-        req.heading_offset = 0
+        req.master_heading_offset = 0
         self._waypoint_setter.wait_for_service()
         if self._waypoint_setter(Time(rospy.Time.from_sec(0.0)),True,wps,max(speeds),0.0,String("lipb")):
             self.STATE = PlanControlState.EXECUTING

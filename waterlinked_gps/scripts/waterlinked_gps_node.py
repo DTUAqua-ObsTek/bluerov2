@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-# TODO:
 # - Error handling when failing to connect to waterlinked GPS
-
+import numpy as np
+import pymap3d
+import requests.exceptions
 import rospy
 #
 from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion, Vector3, TwistStamped
@@ -10,34 +11,22 @@ from requests.exceptions import ConnectionError
 from requests_futures.sessions import FuturesSession
 # Custom ROS messages
 from waterlinked_gps_msgs.msg import *
-from tf2_ros import Buffer, TransformStamped, TransformBroadcaster
-from geographic_msgs.msg import GeoPoint
-from geodesy import utm
+from tf2_ros import Buffer, TransformStamped, TransformBroadcaster, StaticTransformBroadcaster
 from scipy.spatial.transform import Rotation
-import numpy as np
-from pyproj import Proj
-from math import pi, atan, tan, sin, sqrt, atan2
-from sensor_msgs.msg import NavSatFix
+from bluerov2_navigation.helpers import geodetic, geoid
+from sensor_msgs.msg import NavSatFix, Imu
+from message_filters import ApproximateTimeSynchronizer, Subscriber
+from std_msgs.msg import Float64
+from mavros_msgs.msg import HomePosition, HilGPS
+import socket
+import json
 
 
-def is_south(band):
-    """A way of finding hemisphere from band"""
-    alpha = {c: num for num,c in enumerate(string.ascii_uppercase)}
-    return alpha[band] < 12
-
-
-def calc_grid_convergence(utmpoint):
-    """A way of calculating grid convergence for a UTM point."""
-    p = Proj(south=is_south(utmpoint.band), proj='utm', zone=utmpoint.zone, ellps='WGS84')
-    lon_pm, lat_pm = p(500000, utmpoint.northing, inverse=True)
-    return atan(tan(pi*lon_pm/180.0)*sin(pi*lat_pm/180.0))
-
-
-class WaterlinkedGPS():
+class WaterlinkedGPS:
     def __init__(self):
         rospy.loginfo('Waterlinked GPS object created...\n')
         ip = rospy.get_param("~ip", "192.168.2.94")
-        port = rospy.get_param("~port", "80")
+        port = str(rospy.get_param("~port", "80"))
 
         """
         Default TF Behaviour: If no datum point given, then waterlinked node sends utm->map transform referenced to the
@@ -48,15 +37,31 @@ class WaterlinkedGPS():
         Pose data is referenced to waterlinked frame.
         """
 
-        self._map_frame_id = rospy.get_param("~map_frame_id", "map")
-        self._waterlinked_frame_id = rospy.get_param("~waterlinked_frame_id", "waterlinked")
-        self._send_tf = rospy.get_param("~send_tf", False)
-        self._datum = rospy.get_param("~datum", None)  # if no datum specified
-        self._master_gps_ns = rospy.get_param("~master_gps_ns", None)  # None
-        self._master_orientation_topic = rospy.get_param("~master_imu_topic", None)
+        self._earth_frame_id = rospy.get_param("earth_frame_id", "ecef")
+        self._map_frame_id = rospy.get_param("map_frame_id", "map")
+        self._waterlinked_frame_id = rospy.get_param("waterlinked_frame_id", "waterlinked")
+        self._base_frame_id = rospy.get_param("base_fraame_id", "base_link")
+        self._send_tf = rospy.get_param("~send_tf", True)
+        self._geoid_path = rospy.get_param("geoid_path", "/usr/share/GeographicLib/geoids/egm96-5.pgm")
+        self._master_covariance = None
+        self._master_covariance_type = None
+        self._msl = 0
+        try:
+            self._geoid = geoid.GeoidHeight(self._geoid_path)
+        except FileNotFoundError as e:
+            rospy.logfatal("{} | Could not find geoid model file {}, have you run 'install_geographiclib_datasets.sh' in mavros lib?".format(rospy.get_name(), self._geoid_path))
+            raise e
 
-        self._tf_buffer = Buffer()
-        self._tf_bcast = TransformBroadcaster()
+        if self._send_tf:
+            self._tf_buffer = Buffer()
+            self._tf_bcast = TransformBroadcaster()
+            self._tf_static = StaticTransformBroadcaster()
+            waterlinked_frd = TransformStamped()
+            waterlinked_frd.header.frame_id = self._waterlinked_frame_id
+            waterlinked_frd.child_frame_id = self._waterlinked_frame_id + "_frd"
+            waterlinked_frd.header.stamp = rospy.Time.now()
+            waterlinked_frd.transform.rotation = Quaternion(0.707106781185, 0.707106781185, 0, 0)
+            self._tf_static.sendTransform(waterlinked_frd)
 
         # The base URL is the one specified through: http://192.168.2.2:2770/waterlinked
         self._base_url = 'http://' + ip + ':' + port + '/api/v1'
@@ -81,8 +86,8 @@ class WaterlinkedGPS():
         self._urls_fast = [self._base_url + api_endpoint for api_endpoint in self._api_endpoints_fast]
 
         # Specify the frequencies for the two groups
-        self._rate_slow_hz = 0.25
-        self._rate_fast_hz = 4.0
+        self._rate_slow_hz = rospy.get_param("~slow_rate_hz", 0.25)
+        self._rate_fast_hz = rospy.get_param("~fast_rate_hz", 4.0)
 
         # Print the URLs and their specified frequencies
         self.print_urls()
@@ -90,26 +95,36 @@ class WaterlinkedGPS():
         # HTTP request session
         self._session = FuturesSession(max_workers=10)
 
-        # If a master gps topic has been specified, then forward that to waterlinked for use
-        if self._master_gps_ns is not None:
-            self._gps_msg = {
-                              "cog": 0,
-                              "fix_quality": 1,
-                              "hdop": 0,
-                              "lat": 0.0,
-                              "lon": 0.0,
-                              "numsats": 11,
-                              "orientation": 0.0,
-                              "sog": 0.0
-                            }
-            self._gps_url = self._base_url + "/external/master"
-            rospy.Subscriber(self._master_gps_ns+"/fix", NavSatFix, self._handle_master_gps)
-            rospy.Subscriber(self._master_gps_ns+"/vel", TwistStamped, self._handle_master_vel)
-            rospy.Timer(rospy.Duration.from_sec(1.0), self._forward_master_position)
+        # If a master gps topic is being published, then forward that to waterlinked for use
+        self._gps_msg = {
+            "cog": 0,
+            "fix_quality": 1,
+            "hdop": 0,
+            "lat": 0.0,
+            "lon": 0.0,
+            "numsats": 11,
+            "orientation": 0.0,
+            "sog": 0.0
+        }
+        self._gps_url = self._base_url + "/external/master"
 
-        # Configure the slow and fast timer callbacks
-        rospy.Timer(rospy.Duration.from_sec(1.0 / self._rate_slow_hz), self.slow_callback)
-        rospy.Timer(rospy.Duration.from_sec(1.0 / self._rate_fast_hz), self.fast_callback)
+
+        self._imu_msg = {
+            "pitch": 0.0,
+            "roll": 0.0,
+            "yaw": 0.0,
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+        }
+        self._imu_url = self._base_url + "/external/imu"
+
+        self._depth_msg = {"depth": 0.0,
+                           "temp": 19.0}
+        self._depth_url = self._base_url + "/external/depth"
+
+        self._orientation_msg = {"orientation": 0}
+        self._orientation_url = self._base_url + "/external/orientation"
 
         # Time logging variables
         self._show_loop_timing = False
@@ -122,26 +137,94 @@ class WaterlinkedGPS():
         self._pub_about_temperature = rospy.Publisher('waterlinked/about/temperature', AboutTemperature, queue_size=5)
         self._pub_config_generic = rospy.Publisher('waterlinked/config/generic', ConfigGeneric, queue_size=5)
         self._pub_config_receivers = rospy.Publisher('waterlinked/config/receivers', ConfigReceivers, queue_size=5)
+        self._pub_hil_gps = rospy.Publisher("mavros/hil/gps", HilGPS, queue_size=5)
 
         # Fast publishers
-        self._pub_external_orientation = rospy.Publisher('waterlinked/external/orientation', ExternalOrientation,
+        self._pub_external_orientation = rospy.Publisher('waterlinked/orientation', ExternalOrientation,
                                                          queue_size=5)
         self._pub_position_acoustic_filtered = rospy.Publisher('waterlinked/position/acoustic/filtered',
-                                                               PositionAcousticFiltered, queue_size=5)
-        self._pub_position_acoustic_raw = rospy.Publisher('waterlinked/position/acoustic/raw', PositionAcousticRaw,
+                                                               PositionAcoustic, queue_size=5)
+        self._pub_position_acoustic_raw = rospy.Publisher('waterlinked/position/acoustic/raw', PositionAcoustic,
                                                           queue_size=5)
-        self._pub_position_global = rospy.Publisher('waterlinked/position/global', PositionGlobal, queue_size=5)
-        self._pub_position_master = rospy.Publisher('waterlinked/position/master', PositionMaster, queue_size=5)
+        self._pub_position_global = rospy.Publisher('waterlinked/position/global', NavSatFix, queue_size=5)
+        self._pub_position_master = rospy.Publisher('waterlinked/position/master', NavSatFix, queue_size=5)
 
         # Prepare sensor data for the robot_localization package
         self._pub_pos_with_covariance_stamped = rospy.Publisher('waterlinked/pose_with_cov_stamped',
                                                                 PoseWithCovarianceStamped, queue_size=5)
 
+        self._pub_mavros_home_set = rospy.Publisher('waterlinked/home', HomePosition, queue_size=5)
+
+        # Socket to send GPS data to mavproxy
+        self._socket_mavproxy = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._socket_mavproxy.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._socket_mavproxy.setblocking(0)
+        self._tss = ApproximateTimeSynchronizer([Subscriber("waterlinked/external/fix", NavSatFix),
+                                                 Subscriber("waterlinked/external/vel", TwistStamped)], queue_size=10,
+                                                slop=1.0)
+        self._tss.registerCallback(self._forward_master_position)
+        rospy.Subscriber("waterlinked/external/master/orientation", Float64, self._update_master_orientation)
+        rospy.Subscriber("waterlinked/external/imu", Imu, self._forward_imu)
+        rospy.Subscriber("waterlinked/external/depth", Float64, self._forward_depth)
+        rospy.Subscriber("waterlinked/external/orientation", Float64, self._forward_orientation)
+        # Configure the slow and fast timer callbacks
+        rospy.Timer(rospy.Duration.from_sec(1.0 / self._rate_slow_hz), self.slow_callback)
+        rospy.Timer(rospy.Duration.from_sec(1.0 / self._rate_fast_hz), self.fast_callback)
+
         # Enter infinite spinning
         rospy.spin()
 
+    def _update_master_orientation(self, msg: Float64):
+        self._gps_msg["orientation"] = msg.data
+
+    def _forward_orientation(self, msg: Float64):
+        self._orientation_msg["orientation"] = msg.data
+        try:
+            r = self._session.put(self._orientation_url, json=self._orientation_msg, timeout=2)
+            r = r.result(10)
+        except Exception as e:
+            rospy.logerr_throttle(10.0, "{} | {}".format(rospy.get_name(), e))
+            return
+        if r.status_code != 200:
+            rospy.logerr("Error setting vehicle orientation: {} {}".format(r.status_code, r.text))
+
+    def _forward_imu(self, msg: Imu):
+        euler = Rotation.from_quat(msg.orientation.x,
+                                   msg.orientation.y,
+                                   msg.orientation.z,
+                                   msg.orientation.w).as_euler("xyz")
+        self._imu_msg["pitch"] = euler[0]
+        self._imu_msg["roll"] = euler[1]
+        self._imu_msg["yaw"] = euler[2]
+        self._imu_msg["x"] = msg.linear_acceleration.x
+        self._imu_msg["y"] = msg.linear_acceleration.y
+        self._imu_msg["z"] = msg.linear_acceleration.z
+        try:
+            r = self._session.put(self._imu_url, json=self._imu_msg, timeout=2)
+            r = r.result(10)
+        except Exception as e:
+            rospy.logerr_throttle(10.0, "{} | {}".format(rospy.get_name(), e))
+            return
+        if r.status_code != 200:
+            rospy.logerr("Error setting vehicle imu: {} {}".format(r.status_code, r.text))
+
+    def _forward_depth(self, msg: Float64):
+        self._depth_msg["depth"] = abs(msg.data) if msg.data < 0 else 0
+        self._msl = msg.data
+        try:
+            r = self._session.put(self._depth_url, json=self._depth_msg, timeout=2)
+            r = r.result(10)
+        except Exception as e:
+            rospy.logerr_throttle(10.0, "{} | {}".format(rospy.get_name(), e))
+            return
+        if r.status_code != 200:
+            rospy.logerr("Error setting vehicle depth: {} {}".format(r.status_code, r.text))
+
     def connection_error(self):
         rospy.logerr_throttle(10, "{} | Unable to connect to Waterlinked GPS on: {}".format(rospy.get_name(), self._base_url))
+
+    def timeout_error(self):
+        rospy.logerr_throttle(1, "{} | Timeout on request.".format(rospy.get_name()))
 
     def print_urls(self):
         message = 'Waterlinked APIs to be requested (see https://demo.waterlinked.com/swagger/#/):\n'
@@ -153,29 +236,26 @@ class WaterlinkedGPS():
             message += '- ' + url_str +'\n'
         rospy.loginfo('{} | {}'.format(rospy.get_name(), message))
 
-    def _forward_master_position(self, event):
+    def _forward_master_position(self, gps_msg: NavSatFix, vel_msg: TwistStamped):
         """ If an external gps topic is subscribed, forward the latitude and longitude over to waterlinked."""
+        self._gps_msg["lat"] = gps_msg.latitude
+        self._gps_msg["lon"] = gps_msg.longitude
+        self._gps_msg["hdop"] = gps_msg.position_covariance[0]
+        self._gps_msg["sog"] = geodetic.sqrt(vel_msg.twist.linear.x ** 2 + vel_msg.twist.linear.y ** 2)
+        val = -1 * (geodetic.atan2(vel_msg.twist.linear.y, vel_msg.twist.linear.x) * 180.0 / geodetic.pi - 90)
+        val = 360 + val if val < 0 else val
+        self._gps_msg["cog"] = val
+        if gps_msg.position_covariance_type > NavSatFix.COVARIANCE_TYPE_UNKNOWN:
+            self._master_covariance = gps_msg.position_covariance
+            self._master_covariance_type = gps_msg.position_covariance_type
         try:
             r = self._session.put(self._gps_url, json=self._gps_msg, timeout=2)
             r = r.result(10)
         except Exception as e:
-            rospy.logerr_throttle(10.0, "{} | {}".format(rospy.get_name(), e.message))
+            rospy.logerr_throttle(10.0, "{} | {}".format(rospy.get_name(), e))
             return
         if r.status_code != 200:
             rospy.logerr("Error setting master position: {} {}".format(r.status_code, r.text))
-
-    def _handle_master_gps(self, msg):
-        """Fill in GPS information for message"""
-        self._gps_msg["lat"] = msg.latitude
-        self._gps_msg["lon"] = msg.longitude
-        self._gps_msg["hdop"] = msg.position_covariance[0]
-
-    def _handle_master_vel(self, msg):
-        """Fill in GPS cog/sog for message"""
-        self._gps_msg["sog"] = sqrt(msg.twist.linear.x**2 + msg.twist.linear.y**2)
-        val = -1*(atan2(msg.twist.linear.y, msg.twist.linear.x) * 180.0 / pi - 90)
-        val = 360 + val if val < 0 else val
-        self._gps_msg["cog"] = val
 
     def slow_callback(self, event):
         """ Callback function that requests Waterlinked status and config
@@ -205,8 +285,13 @@ class WaterlinkedGPS():
                 data = res_about.json()
                 msg_about = About()
                 msg_about.header.stamp = tnow
-                msg_about.chipid = data['chipid']
-                msg_about.version = data['version']
+                msg_about.chipid = data.get('chipid', None)
+                msg_about.hardware_revision = data.get("hardware_revision", None)
+                msg_about.product_id = data.get("product_id", None)
+                msg_about.product_name = data.get("product_name", None)
+                msg_about.variant = data.get("variant", None)
+                msg_about.version = data.get('version', None)
+                msg_about.version_short = data.get("version_short", None)
                 self._pub_about.publish(msg_about)
 
             # waterlinked/about/status
@@ -215,8 +300,9 @@ class WaterlinkedGPS():
                 data = res_about_status.json()
                 msg_about_status = AboutStatus()
                 msg_about_status.header.stamp = tnow
-                msg_about_status.gps = data['gps']
-                msg_about_status.imu = data['imu']
+                msg_about_status.battery = data.get("battery",None)
+                msg_about_status.gps = data.get('gps',None)
+                msg_about_status.imu = data.get('imu',None)
                 self._pub_about_status.publish(msg_about_status)
 
             # waterlinked/about/temperature
@@ -225,7 +311,8 @@ class WaterlinkedGPS():
                 data = res_about_temperature.json()
                 msg_about_temperature = AboutTemperature()
                 msg_about_temperature.header.stamp = tnow
-                msg_about_temperature.board = data['board']
+                msg_about_temperature.board = data.get('board',None)
+                msg_about_temperature.water = data.get("water",None)
                 self._pub_about_temperature.publish(msg_about_temperature)
 
             # waterlinked/config/generic
@@ -234,18 +321,26 @@ class WaterlinkedGPS():
                 data = res_config_generic.json()
                 msg_config_generic = ConfigGeneric()
                 msg_config_generic.header.stamp = tnow
-                #msg_config_generic.carrier_frequency = data['carrier_frequency']
-                msg_config_generic.compass = data['compass'].encode('ascii', 'ignore')
-                msg_config_generic.gps = data['gps'].encode('ascii', 'ignore')
-                msg_config_generic.range_max_x = data['range_max_x']
-                msg_config_generic.range_max_y = data['range_max_y']
-                msg_config_generic.range_max_z = data['range_max_z']
-                msg_config_generic.range_min_x = data['range_min_x']
-                msg_config_generic.range_min_y = data['range_min_y']
-                msg_config_generic.static_lat = data['static_lat']
-                msg_config_generic.static_lon = data['static_lon']
-                msg_config_generic.static_orientation = data['static_orientation']
-                #msg_config_generic.use_external_depth = data['use_external_depth']
+                msg_config_generic.antenna_enabled = data.get('antenna_enabled', None)
+                msg_config_generic.channel = data.get('channel', None)
+                msg_config_generic.compass = data.get('compass', None)
+                msg_config_generic.environment = data.get('environment', None)
+                msg_config_generic.external_pps_enabled = data.get('external_pps_enabled', None)
+                msg_config_generic.gps = data.get('gps', None)
+                msg_config_generic.imu_vehicle_enabled = data.get('imu_vehicle_enabled', None)
+                msg_config_generic.locator_type = data.get('locator_type', None)
+                msg_config_generic.range_max_x = data.get('range_max_x', None)
+                msg_config_generic.range_max_y = data.get('range_max_y', None)
+                msg_config_generic.range_max_z = data.get('range_max_z', None)
+                msg_config_generic.range_min_x = data.get('range_min_x', None)
+                msg_config_generic.range_min_y = data.get('range_min_y', None)
+                msg_config_generic.search_direction = data.get('search_direction', None)
+                msg_config_generic.search_radius = data.get('search_radius', None)
+                msg_config_generic.search_sector = data.get('search_sector', None)
+                msg_config_generic.speed_of_sound = data.get('speed_of_sound', None)
+                msg_config_generic.static_lat = data.get('static_lat', None)
+                msg_config_generic.static_lon = data.get('static_lon', None)
+                msg_config_generic.static_orientation = data.get('static_orientation', None)
                 self._pub_config_generic.publish(msg_config_generic)
 
             # waterlinked/config/receivers
@@ -255,16 +350,18 @@ class WaterlinkedGPS():
                 msg_config_receivers = ConfigReceivers()
                 msg_config_receivers.header.stamp = tnow
                 msg_config_receivers.receivers = []
-                for i in range(len(data)):
+                for d in data:
                     rec = Receiver()
-                    rec.id = data[i]['id']
-                    rec.x = data[i]['x']
-                    rec.y = data[i]['y']
-                    rec.z = data[i]['z']
+                    rec.id = d.get('id',None)
+                    rec.x = d.get('x',None)
+                    rec.y = d.get('y',None)
+                    rec.z = d.get('z',None)
                     msg_config_receivers.receivers.append(rec)
                 self._pub_config_receivers.publish(msg_config_receivers)
-        except ConnectionError as e:
+        except ConnectionError:
             self.connection_error()
+        except requests.exceptions.Timeout:
+            self.timeout_error()
 
     def fast_callback(self, event):
         """ Callback function that requests Waterlinked position and orientation
@@ -301,30 +398,37 @@ class WaterlinkedGPS():
             res_position_acoustic_filtered = future_list[1].result()
 
             # WARN: WATERLINKED POSITION IS LEFT HANDED RFD -> X: RIGHT, y: FORWARDS, Z: DOWN
-            # DO NOT USE ACOUSTIC_FILTERED FOR NAVIGATION!
+            # DO NOT USE /WATERLINKED/POSITION/ACOUSTIC/FILTERED FOR NAVIGATION
+            # SWAPPING TO BE IN RIGHT HANDED RFU, USE /WATERLINKED/POSE_WITH_COV_STAMPED/
+            amsl = None
             if res_position_acoustic_filtered.ok:
                 data = res_position_acoustic_filtered.json()
-                msg_position_acoustic_filtered = PositionAcousticFiltered()
+                msg_position_acoustic_filtered = PositionAcoustic()
                 msg_position_acoustic_filtered.header.stamp = tnow
                 msg_position_acoustic_filtered.header.frame_id = self._waterlinked_frame_id
-                msg_position_acoustic_filtered.std = data['std']
-                msg_position_acoustic_filtered.temp = data['temp']
-                msg_position_acoustic_filtered.x = data['x']
-                msg_position_acoustic_filtered.y = data['y']
-                msg_position_acoustic_filtered.z = data['z']
+                msg_position_acoustic_filtered.receiver_distance = data.get('receiver_distance', None)
+                msg_position_acoustic_filtered.receiver_nsd = data.get('receiver_nsd', None)
+                msg_position_acoustic_filtered.receiver_rssi = data.get('receiver_rssi', None)
+                msg_position_acoustic_filtered.receiver_valid = data.get('receiver_valid', None)
+                msg_position_acoustic_filtered.std = data.get('std', None)
+                msg_position_acoustic_filtered.x = data.get('x', None)
+                msg_position_acoustic_filtered.y = data.get('y', None)
+                msg_position_acoustic_filtered.z = data.get('z', None)
                 if self._pub_position_acoustic_filtered.get_num_connections() > 0:
                     rospy.logwarn_once("{} | waterlinked/acoustic_filtered is left-handed RFD, don't use for navigation, "
-                                       "use waterlinked/pose_with_cov_stamped (FLU) instead.")
+                                       "use waterlinked/pose_with_cov_stamped (RFU) instead.")
                 self._pub_position_acoustic_filtered.publish(msg_position_acoustic_filtered)
 
-                # Create message of the type geometry_msgs/PoseWithCovariance
+                # Create message of the type geometry_msgs/PoseWithCovarianceStamped
                 msg_pose_with_cov_stamped = PoseWithCovarianceStamped()
-                var_xyz = pow(data['std'], 2)  # calculate variance from standard deviation
+                var_xyz = data['std'] ** 2  # calculate variance from standard deviation
                 msg_pose_with_cov_stamped.header.stamp = tnow
                 msg_pose_with_cov_stamped.header.frame_id = self._waterlinked_frame_id
-                msg_pose_with_cov_stamped.pose.pose.position.x = data['y']
-                msg_pose_with_cov_stamped.pose.pose.position.y = -data['x']
-                msg_pose_with_cov_stamped.pose.pose.position.z = -data['z']
+                # TODO Check these axis remaps are correct
+                msg_pose_with_cov_stamped.pose.pose.position.x = data.get('y', None)
+                msg_pose_with_cov_stamped.pose.pose.position.y = data.get('x', None)
+                msg_pose_with_cov_stamped.pose.pose.position.z = -data.get('z', None)
+                amsl = -data.get('z', None)
                 msg_pose_with_cov_stamped.pose.pose.orientation = Quaternion(0, 0, 0, 1)
                 msg_pose_with_cov_stamped.pose.covariance = [var_xyz, 0, 0, 0, 0, 0,
                                                              0, var_xyz, 0, 0, 0, 0,
@@ -338,60 +442,128 @@ class WaterlinkedGPS():
             res_position_acoustic_raw = future_list[2].result()
             if res_position_acoustic_raw.ok:
                 data = res_position_acoustic_raw.json()
-                msg_position_acoustic_raw = PositionAcousticRaw()
+                msg_position_acoustic_raw = PositionAcoustic()
                 msg_position_acoustic_raw.header.stamp = tnow
                 msg_position_acoustic_raw.header.frame_id = self._waterlinked_frame_id
-                msg_position_acoustic_raw.std = data['std']
-                msg_position_acoustic_raw.temp = data['temp']
-                msg_position_acoustic_raw.x = data['x']
-                msg_position_acoustic_raw.y = data['y']
-                msg_position_acoustic_raw.z = data['z']
+                msg_position_acoustic_raw.receiver_distance = data.get('receiver_distance', None)
+                msg_position_acoustic_raw.receiver_nsd = data.get('receiver_nsd', None)
+                msg_position_acoustic_raw.receiver_rssi = data.get('receiver_rssi', None)
+                msg_position_acoustic_raw.receiver_valid = data.get('receiver_valid', None)
+                msg_position_acoustic_raw.std = data.get('std', None)
+                msg_position_acoustic_raw.x = data.get('x', None)
+                msg_position_acoustic_raw.y = data.get('y', None)
+                msg_position_acoustic_raw.z = data.get('z', None)
                 if self._pub_position_acoustic_raw.get_num_connections() > 0:
                     rospy.logwarn_once("{} | waterlinked/acoustic_raw is left-handed RFD, don't use for navigation, "
-                                       "use waterlinked/pose_with_cov_stamped (FLU) instead.")
+                                       "use waterlinked/pose_with_cov_stamped (RFU) instead.")
                 self._pub_position_acoustic_raw.publish(msg_position_acoustic_raw)
 
             # /waterlinked/position/global
             res_position_global = future_list[3].result()
             if res_position_global.ok:
                 data = res_position_global.json()
-                msg_position_global = PositionGlobal()
+                msg_position_global = NavSatFix()
                 msg_position_global.header.stamp = tnow
-                msg_position_global.lat = data['lat']
-                msg_position_global.lon = data['lon']
+                msg_position_global.header.frame_id = self._base_frame_id
+                msg_position_global.latitude = data.get('lat', None)
+                msg_position_global.longitude = data.get('lon', None)
+                geoid_height = self._geoid.get(data.get('lat', None), data.get('lon', None))  # geoid height
+                altitude = amsl + geoid_height if amsl is not None else geoid_height  # height above ellipsoid = geoid height above ellipsoid + height above MSL
+                msg_position_global.altitude = altitude
+                msg_position_global.status.service = msg_position_global.status.SERVICE_GPS
+                msg_position_global.status.status = msg_position_global.status.STATUS_FIX# if data['numsats'] > 6 else msg_position_global.status.STATUS_NO_FIX
+                if self._master_covariance is not None:
+                    msg_position_global.position_covariance = self._master_covariance
+                    msg_position_global.position_covariance_type = self._master_covariance_type
+                else:
+                    msg_position_global.position_covariance_type = msg_position_global.COVARIANCE_TYPE_APPROXIMATED
+                    approx_cov = (data.get('hdop', None) * 1.5) ** 2
+                    msg_position_global.position_covariance = np.diagflat([approx_cov, approx_cov, approx_cov]).flatten().tolist()
                 self._pub_position_global.publish(msg_position_global)
+                out_gps = HilGPS()
+                out_gps.header = msg_position_global.header
+                out_gps.geo.latitude = msg_position_global.latitude
+                out_gps.geo.longitude = msg_position_global.longitude
+                out_gps.geo.altitude = msg_position_global.altitude
+
+                out_gps.geo.altitude = self._msl
+                out_gps.fix_type = 3
+                out_gps.eph = 1
+                out_gps.epv = 1
+                out_gps.satellites_visible = 10
+                self._pub_hil_gps.publish(out_gps)
+                # mav_pkt = {}
+                # mav_pkt['lat'] = data.get('lat', None)
+                # mav_pkt['lon'] = data.get('lon', None)
+                # mav_pkt['fix_type'] = 3
+                # mav_pkt['hdop'] = 1.0
+                # mav_pkt['vdop'] = 1.0
+                # mav_pkt['satellites_visible'] = 10
+                # mav_pkt['ignore_flags'] = 8 | 16 | 32
+                # if mav_pkt['lat'] is not None:
+                #     mav_pkt['lat'] * 1e7
+                #     mav_pkt['lon'] * 1e7
+                #     self._socket_mavproxy.sendto(json.dumps(mav_pkt).encode(), ('0.0.0.0', 14550))
 
             # /waterlinked/position/master
             res_position_master = future_list[4].result()
-            msg_position_master = None
             if res_position_master.ok:
                 data = res_position_master.json()
-                msg_position_master = PositionMaster()
+                msg_position_master = NavSatFix()
                 msg_position_master.header.stamp = tnow
-                msg_position_master.cog = data['cog']
-                msg_position_master.hdop = data['hdop']
-                msg_position_master.lat = data['lat']
-                msg_position_master.lon = data['lon']
-                msg_position_master.numsats = data['numsats']
-                msg_position_master.orientation = data['orientation']
-                msg_position_master.sog = data['sog']
+                msg_position_master.header.frame_id = self._waterlinked_frame_id
+                msg_position_master.latitude = data.get('lat', None)
+                msg_position_master.longitude = data.get('lon', None)
+                msg_position_master.altitude = self._geoid.get(data.get('lat', None), data.get('lon', None))  # calculate MSL height above ellipsoid
+                msg_position_master.status.service = msg_position_master.status.SERVICE_GPS
+                msg_position_master.status.status = msg_position_master.status.STATUS_FIX# if data[
+                                                                                         #        'numsats'] > 6 else msg_position_master.status.STATUS_NO_FIX
+                msg_position_master.position_covariance_type = msg_position_master.COVARIANCE_TYPE_APPROXIMATED
+                approx_cov = (data.get('hdop', None) * 1.5) ** 2
+                msg_position_master.position_covariance = np.diagflat(
+                    [approx_cov, approx_cov, approx_cov]).flatten().tolist()
                 self._pub_position_master.publish(msg_position_master)
 
-            # CONVENTION: UTM -> WATERLINKED IS DEFINED BY UTM POSITION OF MASTER, ROTATED ACCORDING TO MASTER ORIENTATION
-            # CONVENTION: UTM -> MAP IS DEFINED BY UTM POSITION OF MASTER, WITHOUT ANY ROTATION (ALIGNED WITH NORTH)
-            # CONVENTION: UTM -> MAP CAN ALSO BE DEFINED BY AN EXTERNAL DATUM [LATITUDE, LONGITUDE]
-            if self._send_tf and msg_position_master is not None:
-                tf_map = TransformStamped()  # Map transformation
-                tf_map.header.stamp = tnow
-                tf_map.header.frame_id = self._map_frame_id
-                tf_map.child_frame_id = self._waterlinked_frame_id
-                # ORIENTATION IS PROVIDED AS NORTH REFERENCED CW
-                # NEEDS TO BE CONVERTED TO EAST REFERENCED CCW
-                q = Rotation.from_euler('xyz', [0, 0, 90-msg_position_master.orientation], degrees=True).as_quat()
-                tf_map.transform.rotation = Quaternion(*q)
-                self._tf_bcast.sendTransform(tf_map)
-        except ConnectionError as e:
+                if self._pub_mavros_home_set.get_num_connections():
+                    mavros_home_msg = HomePosition()
+                    mavros_home_msg.header.stamp = tnow
+                    mavros_home_msg.header.frame_id = self._waterlinked_frame_id
+                    mavros_home_msg.geo.latitude = msg_position_master.latitude
+                    mavros_home_msg.geo.longitude = msg_position_master.longitude
+                    mavros_home_msg.geo.altitude = msg_position_master.altitude
+                    mavros_home_msg.orientation.w = 1
+                    self._pub_mavros_home_set.publish(mavros_home_msg)
+
+                # CONVENTION: ECEF -> MAP IS DEFINED BY ECEF POSITION OF MASTER, ROTATION HANDLED AS ECEF -> ENU
+                # CONVENTION: MAP -> WATERLINKED IS DEFINED BY ZERO TRANSLATION, ROTATED WITH MASTER ALIGNMENT
+                if self._send_tf:
+                    # Calculate Translation and Rotation ECEF to ENU
+                    x, y, z = pymap3d.geodetic2ecef(data.get('lat', None), data.get('lon', None), msg_position_master.altitude)
+                    q_ecef_map = Rotation.from_matrix(geodetic.rotate_ecef_to_enu(data.get('lat', None), data.get('lon', None))).as_quat()
+                    tf_ecef_map = TransformStamped()
+                    tf_ecef_map.header.stamp = tnow
+                    tf_ecef_map.header.frame_id = self._earth_frame_id
+                    tf_ecef_map.child_frame_id = self._map_frame_id
+                    tf_ecef_map.transform.translation = Vector3(x, y, z)
+                    tf_ecef_map.transform.rotation = Quaternion(*q_ecef_map)
+                    self._tf_bcast.sendTransform(tf_ecef_map)
+                    # Calculate Rotation ENU to Waterlinked
+                    # ORIENTATION IS PROVIDED AS NORTH REFERENCED CW
+                    # NEEDS TO BE CONVERTED TO EAST REFERENCED CCW
+                    q_map_waterlinked = Rotation.from_euler('xyz', [0, 0, - data.get('orientation', None)],
+                                                            degrees=True).as_quat()
+                    tf_map_waterlinked = TransformStamped()
+                    tf_map_waterlinked.header.stamp = tnow
+                    tf_map_waterlinked.header.frame_id = self._map_frame_id
+                    tf_map_waterlinked.child_frame_id = self._waterlinked_frame_id
+                    tf_map_waterlinked.transform.rotation = Quaternion(*q_map_waterlinked)
+                    self._tf_bcast.sendTransform(tf_map_waterlinked)
+
+        except ConnectionError:
             self.connection_error()
+        except requests.exceptions.Timeout:
+            self.timeout_error()
+
 
 # The main function
 if __name__ == '__main__':

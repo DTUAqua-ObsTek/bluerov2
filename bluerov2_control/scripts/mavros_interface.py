@@ -3,31 +3,53 @@
 import rospy
 
 from mavros_msgs.msg import ManualControl  # message control to ardusub
+from mavros_msgs.msg import OverrideRCIn  # thrust control to ardusub
+from mavros_msgs.msg import ParamValue
+from mavros_msgs.srv import *
+from bluerov2_ardusub import enums
 from sensor_msgs.msg import Joy  # joystick controls
-from geometry_msgs.msg import WrenchStamped, Vector3Stamped
-from tf2_ros import TransformListener, Buffer
-import tf2_geometry_msgs
+from geometry_msgs.msg import WrenchStamped
+import tf2_ros, tf2_geometry_msgs
 import numpy as np
-from bluerov2_control.msg import ControlMode
-from bluerov2_control.srv import SetControlMode, SetControlModeRequest
+from bluerov2_msgs.msg import ControllerState
+from bluerov2_msgs.srv import SetControllerState, SetControllerStateRequest
+from dynamic_reconfigure.server import Server
+from bluerov2_msgs.cfg import btnFunctionsConfig
 
 
-class MavrosInterface(object):
+class MavrosInterface:
 
     """
     Class to handle control messages to MAVROS
-    - Maps Wrench to ManualControl Message
-    - If controller is IDLE or OFF, then route Joystick axes to ManualControl message
+    - Maps Wrench to RCOverride Message
+    - If controller state is IDLE or OFF, then route Joystick axes to ManualControl message
     """
 
     def __init__(self):
-        self._controller_state = ControlMode.OFF
-        self._btn_remap = rospy.get_param("~mappings", {})
-        self._wrench_polynomial = rospy.get_param("~wrench_polynomial", {"x": [1, 0],
-                                                                         "y": [1, 0],
-                                                                         "z": [1, 0],
-                                                                         "r": [1, 0]})
-        self._switch_trigger = 0
+        self._controller_state = ControllerState.OFF
+        self._btn_map = rospy.get_param("~mappings/buttons") # Instead, get the button mappings from the pilot, and set them here
+
+        # Set the function mappings
+        self._fcn_map = rospy.get_param("~mappings/functions")[:16]
+        self._param_map = rospy.get_param("~mappings/params")
+        try:
+            self._override_idx = self._fcn_map.index("custom_1")
+        except ValueError as e:
+            rospy.logerr(f"{rospy.get_name()} | No function mapping for custom_1, please provide in [controller_name]_mappings.yaml")
+            raise e
+        self._get_param_serv = rospy.ServiceProxy("mavros/param/get", ParamGet)
+        self._set_param_serv = rospy.ServiceProxy("mavros/param/set", ParamSet)
+        self._push_param_serv = rospy.ServiceProxy("mavros/param/push", ParamPush)
+        self._pull_param_serv = rospy.ServiceProxy("mavros/param/pull", ParamPull)
+        self._set_fcu_mode = rospy.ServiceProxy("mavros/set_mode", SetMode)
+        # Wait for relevant params here
+        rospy.sleep(10.0)
+        self._wait_for_fcu()
+        self._set_function_mappings()
+        self._set_param_mappings()
+
+        self._switch_latch = True
+
         self._joy_polynomial = {"x": [1000, 0],
                                "y": [1000, 0],
                                "z": [500, 500],
@@ -35,101 +57,147 @@ class MavrosInterface(object):
         self._man = ManualControl()  # manual control message
         self._man.z = 500.0  # default 0 throttle value
         self._man_pub = rospy.Publisher("mavros/manual_control/send", ManualControl, queue_size=10)
-        self._tf_buff = Buffer()
-        TransformListener(self._tf_buff)  # listen for TFs to transform between wrench and base_link
-        self._serv = rospy.ServiceProxy("controller/set_control_mode", SetControlMode)
-        rospy.Subscriber('controller/mode', ControlMode, self._update_mode)
+        self._thrust_axes_mappings = rospy.get_param("~mappings/thrust/axes", default={"X": 4, "Y": 5, "Z": 2,
+                                                                                                 "MX": 0, "MY": 1, "MZ": 3})
+        self._thrust_direction_mappings = rospy.get_param("~mappings/thrust/rev", default={"X": False, "Y": False, "Z": False,
+                                                                                           "MX": False, "MY": False, "MZ": False})
+        self._wrench_polynomial = rospy.get_param("~mappings/wrench/polynomial", {"X": [1, 0],
+                                                                                  "Y": [1, 0],
+                                                                                  "Z": [1, 0],
+                                                                                  "MX": [1, 0],
+                                                                                  "MY": [1, 0],
+                                                                                  "MZ": [1, 0]})
+        self._tf_buff = tf2_ros.Buffer()
+        tf2_ros.TransformListener(self._tf_buff)  # listen for TFs to transform between wrench and base_link
+        self._set_state_serv = rospy.ServiceProxy("controller/set_controller_state", SetControllerState)  # Service to change the controller's state
+        rospy.Subscriber('controller/state', ControllerState, self._update_mode)  # Topic to listen on for updates to the controller state
         rospy.Subscriber('joy', Joy, self._joy_callback)  # we listen on joystick for button commands
         rospy.Subscriber('wrench/target', WrenchStamped, self._wrench_callback)  # listen on input_stamped for commanded wrench
+        self._reconfigure_server = Server(btnFunctionsConfig, self._update_btn_functions, rospy.get_namespace() + "mavros/param")
+
+    def _wait_for_fcu(self):
+        flag = False
+        while not flag:
+            rospy.loginfo(f"{rospy.get_name()} | Probing availability of BTN parameters from FCU.")
+            rospy.sleep(5.0)
+            self._get_param_serv.wait_for_service()
+            flag = all([self._get_param_serv.call(ParamGetRequest(f"BTN{i}_FUNCTION")).success for i, _ in enumerate(self._fcn_map)])
+        flag = False
+        while not flag:
+            self._get_param_serv.wait_for_service()
+            flag = all([self._get_param_serv.call(ParamGetRequest(param)).success for i, param in enumerate(self._param_map)])
+
+    def _update_btn_functions(self, config, level):
+        if level > -1:
+            level = np.array([level]).astype(">u2")
+            self._set_param_serv.wait_for_service()
+            for i, val in enumerate(level):
+                if val:
+                    res = self._set_param_serv.call(ParamSetRequest(f"BTN{i}_FUNCTION", ParamValue(config[f"BTN{i}_FUNCTION"], None)))
+                    if res.success:
+                        rospy.loginfo(f"{rospy.get_name()} | Set BTN{i}_FUNCTION.")
+                    else:
+                        rospy.logerr(f"{rospy.get_name()} | Failed to set BTN{i}_FUNCTION.")
+        return config
+
+    def _set_param_mappings(self):
+        try:
+            req = ParamSetRequest()
+            for i, param in enumerate(self._param_map):
+                rospy.set_param(rospy.get_namespace() + f"mavros/param/{param}", self._param_map[param])
+                self._set_param_serv.wait_for_service(1.0)
+                req.param_id = param
+                req.value.real = self._param_map[param]
+                res = self._set_param_serv(req)
+                if not res.success:
+                    rospy.logerr(f"{rospy.get_name()} | Could not set {param}.")
+                else:
+                    rospy.loginfo(f"{rospy.get_name()} | Set {param}")
+        except rospy.ServiceException as e:
+            rospy.logerr(f"{rospy.get_name()} | {e}")
+            raise e
+
+    def _set_function_mappings(self):
+        try:
+            req = ParamSetRequest()
+            for i, fcn in enumerate(self._fcn_map):
+                rospy.set_param(rospy.get_namespace() + f"mavros/param/BTN{i}_FUNCTION", enums.BTN_FUNCTION[fcn].value)
+                self._set_param_serv.wait_for_service(1.0)
+                req.param_id = f"BTN{i}_FUNCTION"
+                req.value.integer = enums.BTN_FUNCTION[fcn].value
+                res = self._set_param_serv(req)
+                if not res.success:
+                    rospy.logerr(f"{rospy.get_name()} | Could not set BTN{i}_FUNCTION.")
+                else:
+                    rospy.loginfo(f"{rospy.get_name()} | Set BTN{i}_FUNCTION.")
+        except rospy.ServiceException as e:
+            rospy.logerr(f"{rospy.get_name()} | {e}")
+            raise e
+
+    def _push_function_mappings(self):
+        try:
+            res = ParamPushResponse()
+            req = ParamPushRequest()
+            for i, fcn in enumerate(self._fcn_map):
+                rospy.set_param(rospy.get_namespace() + f"mavros/param/BTN{i}_FUNCTION", enums.BTN_FUNCTION[fcn].value)
+            while not res.success:
+                self._push_param_serv.wait_for_service(1.0)
+                res = self._push_param_serv(req)
+                if not res.success:
+                    rospy.logwarn(f"{rospy.get_name()} | Could not set button remappings, trying again.")
+                else:
+                    rospy.loginfo(f"{rospy.get_name()} | Button-Fcn mappings set.")
+        except rospy.ServiceException as e:
+            rospy.logerr(f"{rospy.get_name()}|{e}")
+            raise e
 
     def _update_mode(self, mode):
-        self._controller_state = mode.mode
+        self._controller_state = mode.state
 
     def _trigger_manual(self):
-        # transition to direct teleop with FCU
-        rospy.logdebug("SWITCH STATE CALLED")
-        self._serv.wait_for_service()
-        req = SetControlModeRequest()
-        req.mode.mode = req.mode.OFF
-        res = self._serv.call()
+        # transition to joystick teleop
+        rospy.logdebug(f"{rospy.get_name()} | Triggered Manual Mode")
+        self._set_state_serv.wait_for_service()
+        req = SetControllerStateRequest()
+        req.state.state = ControllerState.OFF
+        res = self._set_state_serv.call(req)
         if not res.success:
-            rospy.logerr("{} | Could not turn controller off!".format(rospy.get_name()))
+            rospy.logerr("{} | Could not switch to manual mode!".format(rospy.get_name()))
+        self._controller_state = ControllerState.OFF
+        req = SetModeRequest()
+        req.base_mode = req.MAV_MODE_STABILIZE_ARMED
+        self._set_fcu_mode.wait_for_service()
+        res = self._set_fcu_mode.call(req)
 
     def _wrench_callback(self, msg):
         """
         Commanded wrench is converted to joystick gains and sent to manual control topic
         """
-        # if not msg.header.frame_id.endswith("frd"):
-        #     forces = Vector3Stamped()
-        #     forces.header = msg.header
-        #     forces.vector = msg.wrench.force
-        #     torques = Vector3Stamped()
-        #     torques.header = msg.header
-        #     torques.vector = msg.wrench.torque
-        #     forces = self._tf_buff.transform(forces, forces.header.frame_id+"_frd", rospy.Duration(1))
-        #     torques = self._tf_buff.transform(torques, torques.header.frame_id+"_frd", rospy.Duration(1))
-        #     msg.wrench.force = forces.vector
-        #     msg.wrench.torque = torques.vector
-        # rospy.loginfo_throttle(1.0, msg)
         # If the controller state is ON, then map wrench to joystick gains and send to ROV
-        if self._controller_state != ControlMode.OFF:
+        if self._controller_state > ControllerState.OFF:
             self._man.x = np.clip(np.polyval(self._wrench_polynomial["x"], msg.wrench.force.x), -1000.0, 1000.0)
             self._man.y = -np.clip(np.polyval(self._wrench_polynomial["y"], msg.wrench.force.y), -1000.0, 1000.0)
             self._man.z = np.clip(np.polyval(self._wrench_polynomial["z"], msg.wrench.force.z), -1000.0, 1000.0)
             self._man.r = -np.clip(np.polyval(self._wrench_polynomial["r"], msg.wrench.torque.z), -1000.0, 1000.0)
 
     def _joy_callback(self, msg):
-        # First look at the buttons and decide if the manual override button has been triggered
-        btns = msg.buttons
-        if btns[self._btn_remap['switch']] and not self._switch_trigger:
+        buttons = list(msg.buttons)[:16]
+        # Look for the custom_1 button declaration, turn on manual control if it isn't already on.
+        if buttons[self._override_idx] and not self._controller_state == ControllerState.OFF:
             self._trigger_manual()
-        self._switch_trigger = btns[self._btn_remap['switch']]
-        # booleans in LSB order, taken from default joystick mappings for ArduSub
-        #bools = [bool(i) for i in [btns[self._btn_remap['depth_hold']] if self._btn_remap['depth_hold'] >= 0 else 0,
-        #                           0,
-        #                           btns[self._btn_remap['manual']] if self._btn_remap['manual'] >= 0 else 0,
-        #                           btns[self._btn_remap['stabilize']] if self._btn_remap['stabilize'] >= 0 else 0,
-        #                           btns[self._btn_remap['mount_dec']] if self._btn_remap['mount_dec'] >= 0 else 0,
-        #                           btns[self._btn_remap['mount_inc']] if self._btn_remap['mount_inc'] >= 0 else 0,
-        #                           0,
-        #                           0,
-        #                           btns[self._btn_remap['disarm']] if self._btn_remap['disarm'] >= 0 else 0,
-        #                           btns[self._btn_remap['arm']] if self._btn_remap['arm'] >= 0 else 0,
-        #                           btns[self._btn_remap['mount_center']] if self._btn_remap['mount_center'] >= 0 else 0,
-        #                           0,
-        #                           btns[self._btn_remap['light_inc']] if self._btn_remap['light_inc'] >= 0 else 0,
-        #                           btns[self._btn_remap['light_dec']] if self._btn_remap['light_dec'] >= 0 else 0,
-        #                           btns[self._btn_remap['gain_inc']] if self._btn_remap['gain_inc'] >= 0 else 0,
-        #                           btns[self._btn_remap['gain_dec']] if self._btn_remap['gain_dec'] >= 0 else 0,
-        #                           ]]
-        bools = [bool(i) for i in [0,
-                                    btns[self._btn_remap['manual']] if self._btn_remap['manual'] >= 0 else 0,
-                                   btns[self._btn_remap['depth_hold']] if self._btn_remap['depth_hold'] >= 0 else 0,
-                                    btns[self._btn_remap['stabilize']] if self._btn_remap['stabilize'] >= 0 else 0,
-                                    btns[self._btn_remap['disarm']] if self._btn_remap['disarm'] >= 0 else 0,
-                                    btns[self._btn_remap['mount_inc']] if self._btn_remap['mount_inc'] >= 0 else 0,
-                                    btns[self._btn_remap['arm']] if self._btn_remap['arm'] >= 0 else 0,
-                                    btns[self._btn_remap['mount_center']] if self._btn_remap['mount_center'] >= 0 else 0,
-                                    0,
-                                   btns[self._btn_remap['mount_dec']] if self._btn_remap['mount_dec'] >= 0 else 0,
-                                   0,
-                                   btns[self._btn_remap['gain_dec']] if self._btn_remap['gain_dec'] >= 0 else 0,
-                                   btns[self._btn_remap['gain_inc']] if self._btn_remap['gain_inc'] >= 0 else 0,
-                                   btns[self._btn_remap['light_inc']] if self._btn_remap['light_inc'] >= 0 else 0,
-                                   btns[self._btn_remap['light_dec']] if self._btn_remap['light_dec'] >= 0 else 0,
-                                   ]]
-        bools.reverse()
-        out = 0
-        for bit in bools:
-            out = (out << 1) | bit
-        self._man.buttons = out
         # If controller is in OFF state, then forward joystick axes messages
-        if self._controller_state == ControlMode.OFF:
-            self._man.x = np.clip(np.polyval(self._joy_polynomial["x"], msg.axes[0]), -1000.0, 1000.0)
-            self._man.y = np.clip(np.polyval(self._joy_polynomial["y"], msg.axes[1]), -1000.0, 1000.0)
-            self._man.z = np.clip(np.polyval(self._joy_polynomial["z"], msg.axes[2]), -1000.0, 1000.0)
-            self._man.r = np.clip(np.polyval(self._joy_polynomial["r"], msg.axes[3]), -1000.0, 1000.0)
-        rospy.logdebug('{} manual: {}'.format(rospy.get_name(), out))
+        if self._controller_state != ControllerState.OFF:
+            return
+        out = 0
+        buttons.reverse()
+        for i in buttons:
+            out = (out << 1) | bool(i)
+        self._man.buttons = out
+        self._man.x = np.clip(np.polyval(self._joy_polynomial["x"], msg.axes[0]), -1000.0, 1000.0)
+        self._man.y = np.clip(np.polyval(self._joy_polynomial["y"], msg.axes[1]), -1000.0, 1000.0)
+        self._man.z = np.clip(np.polyval(self._joy_polynomial["z"], msg.axes[2]), -1000.0, 1000.0)
+        self._man.r = np.clip(np.polyval(self._joy_polynomial["r"], msg.axes[3]), -1000.0, 1000.0)
+        rospy.logdebug('{} | manual: {}'.format(rospy.get_name(), out))
 
     def run(self):
         hz = rospy.Rate(10)  # rate to send to the beast
@@ -144,7 +212,7 @@ class MavrosInterface(object):
 
 if __name__ == "__main__":
     try:
-        rospy.init_node('mavros_interface')
+        rospy.init_node('mavros_interface')#, log_level=rospy.DEBUG)
         interface = MavrosInterface()
         interface.run()
     except rospy.ROSInterruptException:

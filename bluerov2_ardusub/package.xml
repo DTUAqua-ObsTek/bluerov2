@@ -53,6 +53,8 @@
   <build_depend>mavros</build_depend>
   <build_export_depend>mavros</build_export_depend>
   <exec_depend>mavros</exec_depend>
+  <exec_depend>python3-requests</exec_depend>
+  <exec_depend>python3-bs4</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- The bluerov2 standard nose camera: frame descriptions -->
+    <xacro:macro name="nose_cam_joints" params="namespace">
+        <link name="${namespace}/nose_cam"/>
+        <link name="${namespace}/nose_cam_optical"/>
+        <joint name="${namespace}/base_link_${namespace}/nose_cam" type="revolute">
+            <axis xyz="0 1 0"/>
+            <origin xyz="0.075 0 0" rpy="0 0 0"/>
+            <parent link="${namespace}/base_link"/>
+            <child link="${namespace}/nose_cam"/>
+            <limit lower="${pi/4}" upper="${-pi/4}" effort="0.5" velocity="0.1"/>
+        </joint>
+        <joint name="${namespace}/nose_cam_${namespace}/nose_cam_optical" type="fixed">
+            <origin xyz="0 0 0" rpy="-${pi/2} 0 -${pi/2}"/>
+            <parent link="${namespace}/nose_cam"/>
+            <child link="${namespace}/nose_cam_optical"/>
+        </joint>
+    </xacro:macro>
+
+    <xacro:macro name="camera_downfacing" params="namespace">
+        <link name="${namespace}/camera_downfacing"/>
+        <link name="${namespace}/camera_downfacing_optical"/>
+        <joint name="${namespace}/camera_downfacing_${namespace}/camera_downfacing_optical" type="fixed">
+            <origin xyz="0 0 0" rpy="-${pi/2} 0 -${pi/2}"/>
+            <parent link="${namespace}/camera_downfacing"/>
+            <child link="${namespace}/camera_downfacing_optical"/>
+        </joint>
+        <joint name="${namespace}/base_link_${namespace}/camera_downfacing" type="fixed">
+            <origin xyz="0.05 0 -0.1" rpy="0 ${pi/2} 0"/>
+            <parent link="${namespace}/base_link"/>
+            <child link="${namespace}/camera_downfacing"/>
+        </joint>
+    </xacro:macro>
+
+    <!-- The bluerov2 ping sensor: frame descriptions -->
+    <xacro:macro name="ping1d_downfacing" params="namespace">
+        <link name="${namespace}/altimeter"/>
+        <joint name="${namespace}/base_link_${namespace}/altimeter" type="fixed">
+            <origin xyz="0.05 -0.07 -0.17" rpy="0 ${0.5*pi} 0"/>
+            <parent link="${namespace}/base_link"/>
+            <child link="${namespace}/altimeter"/>
+        </joint>
+    </xacro:macro>
+
+</robot>

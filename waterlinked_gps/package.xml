@@ -46,6 +46,15 @@
   <!--   <buildtool_depend>catkin</buildtool_depend> -->
   <!-- Use exec_depend for packages you need at runtime: -->
   <exec_depend>message_runtime</exec_depend>
+  <exec_depend>python3-scipy</exec_depend>
+  <exec_depend>bluerov2_navigation</exec_depend>
+  <exec_depend>python3-requests</exec_depend>
+  <exec_depend>geodesy</exec_depend>
+  <exec_depend>python3-pyproj</exec_depend>
+  <exec_depend>geographic_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>pymap3d-pip</exec_depend>
+  <exec_depend>gps_common</exec_depend>
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <!-- Use doc_depend for packages you need only for building documentation: -->

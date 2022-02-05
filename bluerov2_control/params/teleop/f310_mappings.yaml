@@ -1,0 +1,53 @@
+mappings:
+  axes:
+    - axes[1]
+    - axes[0] * -1.0
+    - axes[4]
+    - axes[3] * -1.0
+#    - axes[2]
+#    - axes[5]
+  buttons:
+    - buttons[0]
+    - buttons[1]
+    - buttons[2]
+    - buttons[3]
+    - buttons[4]
+    - buttons[5]
+    - max(axes[2] * -1, 0)
+    - max(axes[5] * -1, 0)
+    - buttons[6]
+    - buttons[7]
+    - buttons[8]
+    - buttons[9]
+    - max(axes[6],0.0)
+    - min(axes[6],0.0) * -1.0
+    - min(axes[7],0.0) * -1.0
+    - max(axes[7],0.0)
+    - buttons[10]
+  # maps from fcu BTNn to a function (see bluerov2_ardusub.enums for enumerations)
+  # positions above 15 (zero indexed) are not used
+  functions:
+      - custom_1
+      - mode_manual
+      - mode_depth_hold
+      - mode_stabilize
+      - mount_tilt_down
+      - mount_tilt_up
+      - lights1_dimmer
+      - lights1_brighter
+      - disarm
+      - arm
+      - roll_pitch_toggle
+      - mount_center
+      - gain_dec
+      - gain_inc
+      - disabled
+      - disabled
+      - disabled
+  params:
+      JS_GAIN_MIN:
+          0.1
+      JS_GAIN_MAX:
+          1.0
+      JS_GAIN_STEPS:
+          10

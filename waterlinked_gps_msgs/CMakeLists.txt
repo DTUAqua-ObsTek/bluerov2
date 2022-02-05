@@ -57,10 +57,7 @@ add_message_files(
   Receiver.msg
   ConfigReceivers.msg
   ExternalOrientation.msg
-  PositionAcousticFiltered.msg
-  PositionAcousticRaw.msg
-  PositionGlobal.msg
-  PositionMaster.msg
+  PositionAcoustic.msg
 )
 
 ## Generate services in the 'srv' folder

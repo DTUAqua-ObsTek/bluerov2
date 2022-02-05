@@ -1,0 +1,98 @@
+#!/usr/bin/env python
+
+
+import rospy
+import tf2_ros
+from geometry_msgs.msg import Quaternion, PointStamped, PoseWithCovarianceStamped, Transform, Point
+from scipy.spatial.transform import Rotation
+from std_msgs.msg import Header
+from sensor_msgs.msg import NavSatFix, NavSatStatus
+from mavros_msgs.msg import HomePosition
+import pymap3d
+from bluerov2_navigation.helpers.geoid import GeoidHeight
+import tf2_geometry_msgs
+
+
+def handle_gps(msg: NavSatFix, args):
+    """
+        Publish the GPS position in waterlinked frame.
+    """
+    datum, frame, pub, tf = args
+    e, n, u = pymap3d.geodetic2enu(datum[0], datum[1], datum[2], msg.latitude, msg.longitude, msg.altitude)
+    rospy.logdebug("enu: {} {} {}".format(e, n, u))
+    p_enu = PointStamped(Header(0, rospy.Time.from_sec(0.0), frame[0]), Point(e, n, u))
+    try:
+        p_wl = tf.transform(p_enu, frame[1])
+        rospy.logdebug_throttle(5.0, "waterlinked: {} {} {}".format(p_wl.point.x, p_wl.point.y, p_wl.point.z))
+    except tf2_ros.LookupException as e:
+        rospy.logerr_throttle(5.0, "{} | {}".format(rospy.get_name(), e))
+        return
+
+    msg_pose_with_cov_stamped = PoseWithCovarianceStamped()
+    var_xyz = pow(1.5, 2)  # calculate variance from standard deviation
+    msg_pose_with_cov_stamped.header.stamp = msg.header.stamp
+    msg_pose_with_cov_stamped.header.frame_id = p_wl.header.frame_id
+    msg_pose_with_cov_stamped.pose.pose.position.x = p_wl.point.x
+    msg_pose_with_cov_stamped.pose.pose.position.y = p_wl.point.y
+    msg_pose_with_cov_stamped.pose.pose.position.z = p_wl.point.z
+    msg_pose_with_cov_stamped.pose.pose.orientation = Quaternion(0,0,0,1)
+    msg_pose_with_cov_stamped.pose.covariance = [var_xyz, 0, 0, 0, 0, 0,
+                                                 0, var_xyz, 0, 0, 0, 0,
+                                                 0, 0, var_xyz, 0, 0, 0,
+                                                 0, 0, 0, 0, 0, 0,
+                                                 0, 0, 0, 0, 0, 0,
+                                                 0, 0, 0, 0, 0, 0]
+    pub.publish(msg_pose_with_cov_stamped)
+
+
+if __name__=="__main__":
+    rospy.init_node("fake_waterlinked", log_level=rospy.INFO)
+    map_frame_id = rospy.get_param("map_frame_id", "map")
+    waterlinked_frame_id = rospy.get_param("waterlinked_frame_id", "waterlinked")
+    base_frame_id = rospy.get_param("base_frame_id", "base_link")
+    geoid = GeoidHeight(rospy.get_param("geoid_path", "/usr/share/GeographicLib/geoids/egm96-5.pgm"))
+    master_heading_offset = rospy.get_param("~heading")  # heading is given by waterlinked GPS in degrees CW from North
+    master_datum = rospy.get_param("~datum")  # Master location (latitude, longitude)
+    lat, lon, alt = master_datum + [geoid.get(master_datum[0], master_datum[1])] if len(master_datum) < 3 else master_datum
+    master_gps = rospy.Publisher('waterlinked/position/master', NavSatFix, queue_size=5)
+    pub_mavros_home_set = rospy.Publisher("waterlinked/home", HomePosition, queue_size=5)
+    master_msg = NavSatFix()
+    master_msg.header.frame_id = waterlinked_frame_id
+    master_msg.altitude = alt
+    master_msg.longitude = lon
+    master_msg.latitude = lat
+    master_msg.status = NavSatStatus()
+    master_msg.status.status = master_msg.status.STATUS_FIX
+    master_msg.status.service = master_msg.status.SERVICE_GPS
+    master_msg.position_covariance_type = master_msg.COVARIANCE_TYPE_UNKNOWN
+    master_msg.position_covariance = [-1, 0, 0, 0, 0, 0, 0, 0, 0]
+    pose_pub = rospy.Publisher('waterlinked/pose_with_cov_stamped', PoseWithCovarianceStamped, queue_size=5)
+    buff = tf2_ros.Buffer()
+    tf2_ros.TransformListener(buff)
+    rospy.Subscriber("mavros/global_position/global", NavSatFix, handle_gps, ([lat, lon, alt],
+                                                                              [map_frame_id, waterlinked_frame_id],
+                                                                              pose_pub, buff))
+    map_to_waterlink = tf2_ros.TransformStamped(Header(0, rospy.Time.now(), map_frame_id), waterlinked_frame_id,
+                                        Transform(None,
+                                                  Quaternion(*Rotation.from_euler('xyz', [0, 0, - master_heading_offset],
+                                                                                  degrees=True).as_quat().tolist())))
+    waterlink_to_waterlink_frd = tf2_ros.TransformStamped(Header(0, rospy.Time.now(), waterlinked_frame_id),
+                                                          waterlinked_frame_id+"_frd",
+                                                          Transform(None,
+                                                                    Quaternion(0.707106781185, 0.707106781185, 0, 0)))
+    tf2_ros.StaticTransformBroadcaster().sendTransform([map_to_waterlink, waterlink_to_waterlink_frd])
+    rate = rospy.Rate(4.0)
+    while not rospy.is_shutdown():
+        master_msg.header.seq += 1
+        master_msg.header.stamp = rospy.Time.now()
+        master_gps.publish(master_msg)
+        if pub_mavros_home_set.get_num_connections():
+            mavros_home_msg = HomePosition()
+            mavros_home_msg.header.stamp = master_msg.header.stamp
+            mavros_home_msg.header.frame_id = waterlinked_frame_id
+            mavros_home_msg.geo.latitude = master_msg.latitude
+            mavros_home_msg.geo.longitude = master_msg.longitude
+            mavros_home_msg.geo.altitude = master_msg.altitude
+            mavros_home_msg.orientation.w = 1
+            pub_mavros_home_set.publish(mavros_home_msg)
+        rate.sleep()

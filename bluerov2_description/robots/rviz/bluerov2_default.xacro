@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot name="bluerov2" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+    <xacro:arg name="namespace" default="bluerov2"/>
+    <!-- Include the ROV macro file xacro:bluerov2_base -->
+    <xacro:include filename="$(find bluerov2_description)/urdf/rviz/base.xacro"/>
+    <xacro:include filename="$(find bluerov2_description)/urdf/rviz/sensors.xacro"/>
+    <xacro:bluerov2_base namespace="$(arg namespace)"/>
+    <xacro:nose_cam_joints namespace="$(arg namespace)"/>
+    <xacro:ping1d_downfacing namespace="$(arg namespace)"/>
+    <xacro:camera_downfacing namespace="$(arg namespace)"/>
+</robot>

@@ -13,7 +13,7 @@ import rospy
 from sensor_msgs.msg import Joy
 
 
-class TextWindow():
+class TextWindow:
 
     _screen = None
     _window = None
@@ -51,7 +51,7 @@ class TextWindow():
         curses.flash()
 
 
-class SimpleKeyTeleop():
+class SimpleKeyTeleop:
     def __init__(self, interface):
         rospy.init_node('key_teleop')
         self._interface = interface
@@ -135,6 +135,7 @@ class SimpleKeyTeleop():
 def main(stdscr):
     app = SimpleKeyTeleop(TextWindow(stdscr))
     app.run()
+
 
 if __name__ == '__main__':
     try:

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<launch>
+    <arg name="frame_id" default="gps"/>
+    <node pkg="nmea_navsat_driver" type="nmea_serial_driver" name="external_gps" output="screen">
+        <param name="port" value="/dev/externalgps"/>
+        <param name="baud" value="4800"/>
+        <param name="frame_id" value="$(arg frame_id)"/>
+        <param name="useRMC" value="false"/>
+        <remap from="fix" to="waterlinked/external/fix"/>
+        <remap from="vel" to="waterlinked/external/vel"/>
+    </node>
+</launch>

@@ -1,0 +1,3 @@
+bluerov2_msgs/ControllerState state
+---
+bool success

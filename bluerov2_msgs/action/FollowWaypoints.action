@@ -1,0 +1,9 @@
+# Define the goal
+std_msgs/Header header
+mavros_msgs/WaypointList waypoints
+---
+# Define the result
+uint32 waypoints_completed
+---
+# Define a feedback message
+float32 percentage_complete

@@ -1,0 +1,153 @@
+capture_directory: "~"
+fixed_frame: bluerov2/map
+target_frame: bluerov2/map
+fix_orientation: false
+rotate_90: false
+enable_antialiasing: true
+show_displays: true
+show_status_bar: true
+show_capture_tools: true
+window_width: 1848
+window_height: 1016
+view_scale: 1.209999
+offset_x: 30.46772
+offset_y: -304.8638
+use_latest_transforms: true
+background: "#a0a0a4"
+displays:
+  - type: mapviz_plugins/tile_map
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      custom_sources:
+        []
+      bing_api_key: ""
+      source: Stamen (terrain)
+  - type: mapviz_plugins/navsat
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      topic: /bluerov2/mavros/global_position/global
+      color: "#ef2929"
+      draw_style: lines
+      position_tolerance: 5
+      buffer_size: 0
+  - type: mapviz_plugins/tf_frame
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      frame: bluerov2/base_link_frd
+      color: "#00ff00"
+      draw_style: arrows
+      position_tolerance: 0
+      buffer_size: 1
+      static_arrow_sizes: false
+      arrow_size: 500
+  - type: mapviz_plugins/tf_frame
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      frame: waterlinked_frd
+      color: "#cc0000"
+      draw_style: arrows
+      position_tolerance: 0
+      buffer_size: 1
+      static_arrow_sizes: false
+      arrow_size: 500
+  - type: mapviz_plugins/attitude_indicator
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      topic: /bluerov2/mavros/global_position/local
+      x: 0
+      y: 0
+      width: 100
+      height: 100
+  - type: mapviz_plugins/tf_frame
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      frame: bluerov2/map_ned
+      color: "#c17d11"
+      draw_style: arrows
+      position_tolerance: 0
+      buffer_size: 1
+      static_arrow_sizes: true
+      arrow_size: 500
+  - type: mapviz_plugins/image
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      topic: /image_publisher_1643707386811305779/image_raw
+      anchor: bottom right
+      units: pixels
+      offset_x: 0
+      offset_y: 0
+      width: 500
+      height: 500
+      keep_ratio: true
+      image_transport: default
+  - type: mapviz_plugins/coordinate_picker
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      frame: bluerov2/map_ned
+      copy: false
+  - type: mapviz_plugins/measuring
+    name: new display
+    config:
+      visible: false
+      collapsed: true
+      main_color: "#000000"
+      bkgnd_color: "#ffffff"
+      show_bkgnd_color: true
+      show_measurements: true
+      font_size: 10
+      alpha: 0.5
+  - type: mapviz_plugins/float
+    name: amsl
+    config:
+      visible: true
+      collapsed: true
+      font: Sans,24,-1,5,50,0,0,0,0,0
+      color: "#000000"
+      topic: /bluerov2/guidance/msl
+      anchor: top left
+      units: pixels
+      offset_x: 110
+      offset_y: 0
+      postfix_text: " m (AMSL)"
+  - type: mapviz_plugins/float
+    name: sog
+    config:
+      visible: true
+      collapsed: true
+      font: Sans,24,-1,5,50,0,0,0,0,0
+      color: "#000000"
+      topic: /bluerov2/guidance/sog
+      anchor: top left
+      units: pixels
+      offset_x: 110
+      offset_y: 30
+      postfix_text: " m/s (SoG)"
+  - type: mapviz_plugins/float
+    name: cog
+    config:
+      visible: true
+      collapsed: true
+      font: Sans,24,-1,5,50,0,0,0,0,0
+      color: "#000000"
+      topic: /bluerov2/guidance/cog
+      anchor: top left
+      units: pixels
+      offset_x: 110
+      offset_y: 60
+      postfix_text: " deg (CoG)"

@@ -1,0 +1,61 @@
+plugin_blacklist:
+## common
+  - actuator_control
+  - altitude
+  - dummy
+  - ftp
+  - geofence
+  - mission_protocol_base
+  - nav_controller_output
+  - rallypoint
+  - waypoint
+  - wind_estimation
+# extras
+  - 3dr_radio
+  - adsb
+  - cam_imu_sync
+  - camera
+  - companion_process_status
+  - debug_value
+  - esc_status
+  - esc_telemetry
+  - fake_gps
+  - gps_input
+  - gps_rtk
+  - gps_status
+  - landing_target
+  - log_transfer
+  - mocap_pose_estimate
+  - mount_control
+  - obstacle_distance
+  - odom
+  - onboard_computer_status
+  - play_tune
+  - px4flow
+  - rangefinder
+  - safety_area
+  - setpoint_*
+  - terrain
+  - trajectory
+  - tunnel
+  - vfr_hud
+  - vibration
+  - vision_pose_estimate
+  - vision_speed_estimate
+  - wheel_odometry
+
+plugin_whitelist:
+# common
+  - command
+  - global_position
+  - hil
+  - home_position
+  - imu
+  - local_position
+  - manual_control
+  - param
+  - rc_io
+  - sys_*
+# extras
+  - distance_sensor
+  - servo

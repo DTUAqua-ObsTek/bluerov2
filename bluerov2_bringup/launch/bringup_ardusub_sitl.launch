@@ -10,22 +10,6 @@
             <arg name="gazebo" value="$(arg gazebo)"/>
     </include>
 
-    <group if="$(arg gazebo)">
-        <include file="$(find bluerov2_gazebo)/launch/ardusub_peberholm_world.launch">
-            <arg name="use_sim_time" value="false"/>
-        </include>
-        <include file="$(find bluerov2_description)/launch/upload.launch">
-            <arg name="use_geodetic" value="true"/>
-            <arg name="latitude" value="55.603036"/>
-            <arg name="longitude" value="12.8089368"/>
-            <arg name="depth" value="-1"/>
-            <arg name="use_ned_frame" value="false"/>
-            <arg name="mode" value="$(arg mode)"/>
-            <arg name="gazebo_tf" value="false"/>
-        </include>
-        <node pkg="tf2_ros" type="static_transform_publisher" name="map2world" args="0 0 0 0 0 0 map world"/>
-    </group>
-
     <group if="$(arg use_joystick)">
         <include file="$(find bluerov2_control)/launch/switch_pro_teleop.launch" ns="bluerov2"/>
     </group>
@@ -38,10 +22,10 @@
         <param name="heading" value="90"/>
         <rosparam param="datum">[55.60304, 12.808937, 0]</rosparam>
     </node>
-    <include file="$(find bluerov2_state_estimation)/launch/ekf.launch"/>
+    <include file="$(find bluerov2_navigation)/launch/ekf.launch"/>
 
     <group if="$(arg static_odom)" ns="bluerov2">
-        <node pkg="bluerov2_state_estimation" type="tf_manager.py" name="tf_manager">
+        <node pkg="bluerov2_navigation" type="tf_manager.py" name="tf_manager">
             <param name="broadcast_rate" value="30.0"/>
             <param name="odom_frame_id" value="bluerov2/odom"/>
             <param name="static_map_odom" value="True"/>
@@ -49,7 +33,7 @@
     </group>
 
     <group unless="$(arg static_odom)" ns="bluerov2">
-        <node pkg="bluerov2_state_estimation" type="tf_manager.py" name="tf_manager">
+        <node pkg="bluerov2_navigation" type="tf_manager.py" name="tf_manager">
             <param name="broadcast_rate" value="30.0"/>
             <param name="odom_frame_id" value="bluerov2/odom"/>
             <param name="static_map_odom" value="False"/>
@@ -58,14 +42,14 @@
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="odom2ned" args="0 0 0 0.707106781185 0.707106781185 0 0 bluerov2/odom bluerov2/odom_ned"/>
     <node pkg="tf2_ros" type="static_transform_publisher" name="baselink2frd" args="0 0 0 1 0 0 0 bluerov2/base_link bluerov2/base_link_frd"/>
-    <include file="$(find bluerov2_control)/launch/los_controller.launch"/>
-    <node ns="bluerov2" pkg="bluerov2_executive" type="ardusub_executive.py" name="executive" output="screen">
+    <include file="controller_4dof.launch"/>
+    <node pkg="bluerov2_executive" type="ardusub_executive.py" name="executive" output="screen">
         <remap from="gps" to="mavros/global_position/global"/>
         <remap from="odometry" to="odometry/filtered"/>
     </node>
-    <node ns="bluerov2" pkg="bluerov2_control" type="geodetic_to_local.py" name="geodetic_to_utm"/>
-    <include ns="bluerov2" file="$(find bluerov2_neptus)/launch/neptus.launch"/>
-    <node ns="bluerov2" pkg="bluerov2_control" type="trajectory_visualizer.py" name="trajectory_visualizer">
+    <node pkg="bluerov2_control" type="geodetic_to_local.py" name="geodetic_to_utm"/>
+    <include file="$(find bluerov2_neptus)/launch/neptus.launch"/>
+    <node pkg="bluerov2_control" type="trajectory_visualizer.py" name="trajectory_visualizer">
         <remap from="odometry" to="odometry/filtered"/>
     </node>
 </launch>
