@@ -353,6 +353,7 @@ class Cascade4DoF:
             return False
         if self._latest_depth is None:
             return False
+
         if self._latest_ap_sp.height_reference.lower() == self._latest_ap_sp.MSL:
             z_error = self._latest_ap_sp.Z - self._latest_depth
             self._control_depth = True

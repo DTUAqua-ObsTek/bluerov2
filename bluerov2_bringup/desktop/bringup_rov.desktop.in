@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Name[en_US]=ROV Startup
+Comment=ROV Startup
+Exec=${CMAKE_INSTALL_PREFIX}/lib/${PROJECT_NAME}/bringup_rov.sh
+Type=Application
+Icon=${DESKTOP_ICON_DIR}/rov.png
+StartupNotify=true

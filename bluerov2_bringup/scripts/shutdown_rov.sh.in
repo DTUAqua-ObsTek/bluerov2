@@ -1,0 +1,6 @@
+#!/bin/bash
+source @CMAKE_INSTALL_PREFIX@/setup.bash
+export ROS_IP=192.168.2.1
+export ROS_MASTER_URI=http://192.168.2.2:11311
+export LC_NUMERIC="en_US.UTF-8"
+for value in $(rosnode machine $ROS_IP); do rosnode kill $value & done

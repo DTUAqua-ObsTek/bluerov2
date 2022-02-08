@@ -10,11 +10,11 @@
 
 **ROS Master:** It is the primary machine to which all nodes are connected, and helps nodes find each other at startup for p2p communication.
 
-ROS client libraries allow nodes written in different programming languages to communicate: 
+ROS client libraries allow nodes written in different programming languages to communicate 
 
-**rospy**=Python Client Library
+**rospy**: Python Client Library
 
-**roscpp**= C++ Client Library
+**roscpp**: C++ Client Library
 
 If running ROS on your own PC, roscore is the first thing you should run when using ROS
 

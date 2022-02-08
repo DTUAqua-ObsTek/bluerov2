@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Name[en_US]=Stop Recording
+Comment=Stop Recording
+Exec=${CMAKE_INSTALL_PREFIX}/lib/${PROJECT_NAME}/stop_recording.sh
+Type=Application
+Icon=${DESKTOP_ICON_DIR}/stoprecord.png
+StartupNotify=true

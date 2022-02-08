@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(bluerov2_control)
 
 ## Add support for C++11, supported in ROS Kinetic and newer
@@ -19,3 +19,15 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
 )
+
+install(DIRECTORY
+  launch
+  params
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+catkin_install_python(PROGRAMS
+  nodes/controller_4dof
+  nodes/keyboard_joy
+  nodes/mavros_interface
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

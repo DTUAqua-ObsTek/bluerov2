@@ -1,0 +1,8 @@
+#!/bin/bash
+source @CMAKE_INSTALL_PREFIX@/setup.bash
+export LC_NUMERIC="en_US.UTF-8"
+export ROS_IP=192.168.2.1
+export ROS_MASTER_URI=http://192.168.2.2:11311
+mkdir -p $HOME/.ros/screen_logs
+LOGFILE=$HOME/.ros/screen_logs/bluerov2_bringup.log
+screen -L -Logfile $LOGFILE -dmS bluerov2_bringup roslaunch bluerov2_bringup bringup_bluerov2.launch --wait sitl:=false navigation_aid:=waterlinked waterlinked_ip:=192.168.2.94 joystick_type:=f310 rviz:=false

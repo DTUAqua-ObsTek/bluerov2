@@ -11,9 +11,11 @@ You may skip this step if Ubuntu 20.04 is already installed on your machine.
 
 ## Quick Install ##
 
-Run the script [convenient_install.sh](convenient_install.sh):
+Run the script [convenient_installer.sh](convenient_installer.sh):
 
-`. convenient_install.sh`
+`./convenient_install.sh`
+
+**Note**: If the installer fails for some reason (like a missing dependency), please let me know.
 
 ## Slow Install (If you want to install each component yourself) ##
 
@@ -48,11 +50,26 @@ Then install dependencies:
 cd ..
 rosdep install --from-paths src -i
 sudo apt install python3-catkin-tools
+python -m pip install requests-futures bluerobotics-ping
 ```
 
 Then build the workspace:
 
-`catkin build`
+```
+catkin init
+catkin config --install
+catkin build
+```
+
+**Note**: If you want to develop, then it is more convenient to not use the install space,
+so change to `catkin config --no-install` to prevent installation step.
+
+Make sure to source your workspace in your `~/.bashrc file`.
+
+```
+echo "source /your/workspace/path/devel/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+```
 
 Next, make sure to install the support libraries for MAVROS:
 
@@ -61,11 +78,13 @@ Next, make sure to install the support libraries for MAVROS:
 ## Install Ardusub Software-In-The-Loop ##
 
 - SITL: Follow the installation instructions [Starting Here, and Be Sure to Follow Links](https://ardupilot.org/dev/docs/setting-up-sitl-on-linux.html).
-	- NOTE: Follow "Cloning with the command line" section for minimum fuss. When moving on to the [BUILD.md](https://github.com/ArduPilot/ardupilot/blob/master/BUILD.md) section, you do not have to clone ardupilot again. 
+	- NOTE: Follow "Cloning with the command line" section for minimum fuss. I suggest cloning the [Ardusub 4.0.3 tag](https://github.com/ArduPilot/ardupilot/releases/tag/ArduSub-4.0.3).
+	  When moving on to the [BUILD.md](https://github.com/ArduPilot/ardupilot/blob/master/BUILD.md) section, you do not have to clone ardupilot again. 
 	
 - ArduSub Configuration: 
 
 	```
+	cd ardupilot
 	./waf configure --board sitl
 	./waf sub
  	```
@@ -83,20 +102,4 @@ NOTE: For this you will need access to a gamepad joystick (XBox, Logitech, Ninte
 
 ## Test ArduSub SITL and MAVROS ##
 
-** NOTE, this is still a work in progress, the base_link -> thruster TFs are a little strange for some reason but this is purely cosmetic.**
-
-- Launch an instance of ArduSub simulation
-
-	`sim_vehicle.py -v ArduSub -l 55.60304,12.808937,0,0 --map --console`
-
-- Launch MAVROS 
-
-	- with joystick: `roslaunch bluerov2_bringup bringup_ardusub_sitl.launch`
-
-	- with keyboard: `roslaunch bluerov2_bringup bringup_ardusub_sitl.launch use_joystick:=false`
-
-- With Gazebo Camera Simulation
-
-	- with joystick: `roslaunch bluerov2_bringup bringup_ardusub_sitl.launch gazebo:=true`
-
-	- with keyboard: `roslaunch bluerov2_gazebo start_ardusub_sitl_demo.launch gazebo:=true use_joystick:=false`
+See [Tutorial 1](documentation/TUTORIAL-01.md).

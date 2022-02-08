@@ -11,6 +11,13 @@ from tf2_ros import TransformListener, Buffer
 import tf2_geometry_msgs
 from message_filters import TimeSynchronizer, Subscriber
 from bluerov2_navigation.helpers import math
+from pathlib import Path
+from PyQt5.QtWidgets import QWidget, QMessageBox
+from qt_gui.plugin import Plugin
+from python_qt_binding import loadUi
+import rospkg
+from bluerov2_msgs.srv import SetAutopilot, SetAutopilotResponse, SetAutopilotRequest
+from bluerov2_msgs.msg import Autopilot
 
 
 class MsgMonitor:
@@ -25,11 +32,13 @@ class MsgMonitor:
     def __call__(self, msg: rospy.AnyMsg):
             self._last_time = rospy.Time.now()
 
+
 class AnnotationFormat:
     def __init__(self, color: tuple = (255, 255, 255), thickness: int = 2, font: int = cv2.FONT_HERSHEY_SIMPLEX):
         self.color = color
         self.thickness = thickness
         self.font = font
+
 
 class HudOverlay:
     def __init__(self):
@@ -267,3 +276,115 @@ class HudOverlay:
             self._c = 0
         else :
             self._c = self._c + 1
+
+
+class AutopilotInterface(Plugin):
+    def __init__(self, context):
+        super().__init__(context)
+        # Give QObjects reasonable names
+        self.setObjectName('Autopilot Interface')
+        # Create QWidget
+        self._widget = QWidget()
+        # Get path to UI file which should be in the "resource" folder of this package
+        ui_file = str(Path(rospkg.RosPack().get_path('bluerov2_hmi') + '/resource/AutopilotInterface.ui'))
+        # Extend the widget with all attributes and children from UI file
+        loadUi(ui_file, self._widget)
+        # Give QObjects reasonable names
+        self._widget.setObjectName('AutopilotInterface')
+
+        self._autopilot_msg = Autopilot()
+
+        self._widget.SetAutopilotButton.clicked.connect(self.on_button_clicked)
+        self._widget.AMSLRadio.clicked.connect(self.amsl_radio_clicked)
+        self._widget.BottomRadio.clicked.connect(self.bottom_radio_clicked)
+        self._widget.DepthRadio.clicked.connect(self.depth_radio_clicked)
+        self._widget.HeightSetText.editingFinished.connect(self.height_text_finished)
+        self._widget.SpeedSetText.editingFinished.connect(self.speed_text_finished)
+        self._widget.HeadingDial.valueChanged.connect(self.height_dial_changed)
+
+        # Show _widget.windowTitle on left-top of each plugin (when
+        # it's set in _widget). This is useful when you open multiple
+        # plugins at once. Also if you open multiple instances of your
+        # plugin at once, these lines add number to make it easy to
+        # tell from pane to pane.
+        self._autopilot_service = rospy.ServiceProxy("autopilot/set", SetAutopilot)
+        if context.serial_number() > 1:
+            self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
+        # Add widget to the user interface
+        context.add_widget(self._widget)
+
+    def amsl_radio_clicked(self):
+        self._autopilot_msg.height_reference = self._autopilot_msg.MSL
+
+    def bottom_radio_clicked(self):
+        self._autopilot_msg.height_reference = self._autopilot_msg.BTM
+
+    def depth_radio_clicked(self):
+        self._autopilot_msg.height_reference = self._autopilot_msg.DPT
+
+    def height_text_finished(self):
+        try:
+            self._autopilot_msg.Z = float(self._widget.HeightSetText.text())
+        except ValueError as e:
+            alert = QMessageBox()
+            alert.setText(str(e))
+            alert.exec()
+
+    def speed_text_finished(self):
+        try:
+            self._autopilot_msg.U = float(self._widget.SpeedSetText.text())
+        except ValueError as e:
+            alert = QMessageBox()
+            alert.setText(str(e))
+            alert.exec()
+
+    def height_dial_changed(self):
+        value = self._widget.HeadingDial.value()
+        if value > 180:
+            value = value - 180
+        else:
+            value = value + 180
+        self._autopilot_msg.heading = value
+        self._widget.HeadingLabel.setText("{:03d}N deg".format(int(self._autopilot_msg.heading)))
+
+    def on_button_clicked(self):
+        req = SetAutopilotRequest()
+        req.settings = self._autopilot_msg
+        try:
+            self._autopilot_service.wait_for_service(1.0)
+            res = self._autopilot_service.call(req)
+        except Exception as e:
+            alert = QMessageBox()
+            alert.setText(str(e))
+            alert.exec()
+        if res.success:
+            alert = QMessageBox()
+            alert.setText("Autopilot Active\nSpeed: {:2f} m/s\nHeading: {:03d} deg\nHeight: {:.2f} m {}".format(self._autopilot_msg.U,
+                                                                                                                int(self._autopilot_msg.heading),
+                                                                                                                self._autopilot_msg.Z,
+                                                                                                                self._autopilot_msg.height_reference))
+            alert.exec()
+        else:
+            alert = QMessageBox()
+            alert.setText("Autopilot Not Set.")
+            alert.exec()
+
+
+    def shutdown_plugin(self):
+        # TODO unregister all publishers here
+        pass
+
+    def save_settings(self, plugin_settings, instance_settings):
+        # TODO save intrinsic configuration, usually using:
+        # instance_settings.set_value(k, v)
+        pass
+
+    def restore_settings(self, plugin_settings, instance_settings):
+        # TODO restore intrinsic configuration, usually using:
+        # v = instance_settings.value(k)
+        pass
+
+    # def trigger_configuration(self):
+    # Comment in to signal that the plugin has a way to configure
+    # This will enable a setting button (gear icon) in each dock widget title bar
+    # Usually used to open a modal configuration dialog

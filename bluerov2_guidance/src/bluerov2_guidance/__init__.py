@@ -76,6 +76,7 @@ class LineOfSight:
         # ---------- Publishers ----------
         self._set_autopilot_pub = rospy.Publisher("guidance/autopilot", Autopilot, queue_size=5)  # Publish the autopilot settings
         self._msl_pub = rospy.Publisher("guidance/msl", Float64, queue_size=10)  # Convert GPS altitude to MSL
+        self._depth_pub = rospy.Publisher("guidance/depth", Float64, queue_size=10)  # Depth (m)
         self._sog_pub = rospy.Publisher("guidance/sog", Float64, queue_size=10)  # Extract SoG from gps velocity.
         self._cog_pub = rospy.Publisher("guidance/cog", Float64, queue_size=10)  # Extract CoG from gps velocity.
 
@@ -115,6 +116,7 @@ class LineOfSight:
         geoid_height_above_ellipsoid = self._geoid.get(msg.latitude, msg.longitude)
         self._msl = msg.altitude - geoid_height_above_ellipsoid
         self._msl_pub.publish(Float64(msg.altitude - geoid_height_above_ellipsoid))
+        self._depth_pub.publish(Float64(-(msg.altitude - geoid_height_above_ellipsoid)))
         self._current_gps = msg
 
     def _heading_cb(self, msg: Float64):

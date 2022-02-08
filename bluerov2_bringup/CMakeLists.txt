@@ -153,6 +153,81 @@ include_directories(
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 
+set(DESKTOP_APP_DIR "$ENV{HOME}/.local/share/applications")
+set(DESKTOP_ICON_DIR "$ENV{HOME}/.local/share/applications")
+
+install(DIRECTORY
+  debian
+  launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+configure_file(
+    scripts/bringup_rov.sh.in
+    scripts/bringup_rov.sh
+    @ONLY
+)
+configure_file(
+    scripts/shutdown_rov.sh.in
+    scripts/shutdown_rov.sh
+    @ONLY
+)
+configure_file(
+    scripts/start_recording.sh.in
+    scripts/start_recording.sh
+    @ONLY
+)
+configure_file(
+    scripts/stop_recording.sh.in
+    scripts/stop_recording.sh
+    @ONLY
+)
+
+install(PROGRAMS
+    ${CMAKE_CURRENT_BINARY_DIR}/scripts/bringup_rov.sh
+    ${CMAKE_CURRENT_BINARY_DIR}/scripts/shutdown_rov.sh
+    ${CMAKE_CURRENT_BINARY_DIR}/scripts/start_recording.sh
+    ${CMAKE_CURRENT_BINARY_DIR}/scripts/stop_recording.sh
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+configure_file(
+    desktop/bringup_rov.desktop.in
+    desktop/bringup_rov.desktop
+)
+configure_file(
+    desktop/shutdown_rov.desktop.in
+    desktop/shutdown_rov.desktop
+)
+configure_file(
+    desktop/start_recording.desktop.in
+    desktop/start_recording.desktop
+)
+configure_file(
+    desktop/stop_recording.desktop.in
+    desktop/stop_recording.desktop
+)
+
+install(
+    FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/desktop/bringup_rov.desktop
+    ${CMAKE_CURRENT_BINARY_DIR}/desktop/shutdown_rov.desktop
+    ${CMAKE_CURRENT_BINARY_DIR}/desktop/start_recording.desktop
+    ${CMAKE_CURRENT_BINARY_DIR}/desktop/stop_recording.desktop
+    DESTINATION
+    ${DESKTOP_APP_DIR}
+  )
+
+install(
+    FILES
+    icons/rov.png
+    icons/stoprov.png
+    icons/record.png
+    icons/stoprecord.png
+    DESTINATION
+    ${DESKTOP_ICON_DIR}
+  )
+
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 # catkin_install_python(PROGRAMS

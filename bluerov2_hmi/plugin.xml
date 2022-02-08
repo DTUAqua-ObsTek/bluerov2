@@ -1,0 +1,16 @@
+<library path="src">
+  <class name="rqt_bluerov2_hmi" type="bluerov2_hmi.AutopilotInterface" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Interface to send autopilot setpoint requests to the bluerov2 controller.
+    </description>
+    <qtgui>
+      <group>
+        <label>Robot Tools</label>
+      </group>
+      <label>(Bluerov2) Autopilot Interface</label>
+
+      <icon type="theme">system-help</icon>
+      <statustip>Send autopilot commands to the bluerov2.</statustip>
+    </qtgui>
+  </class>
+</library>

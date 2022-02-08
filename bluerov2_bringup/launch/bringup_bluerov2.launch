@@ -3,10 +3,10 @@
     <arg name="sitl" default="false" doc="Use simulator if true, otherwise try to connect to vehicle."/>
     <arg name="navigation_aid" doc="Choose between fake GPS, waterlinked GPS, or microranger 2 USBL: [fake, waterlinked, microranger2]"/>
 
-    <arg name="waterlinked_ip" default="192.168.2.94"/>
-    <arg name="waterlinked_port" default="80"/>
-    <arg name="fake_master_datum" default="[63.44270945305238, 10.423492611347429, 39.860397101985086]"/>
-    <arg name="fake_master_heading" default="0"/>
+    <arg name="waterlinked_ip" doc="IP waterlinked webserver is located on." default="192.168.2.94"/>
+    <arg name="waterlinked_port" doc="Port waterlinked webserver is located on." default="80"/>
+    <arg name="fake_master_datum" doc="Static latitude longitude altitude reference for master." default="[55.77455, 12.49203, 34.90083837440886]"/>
+    <arg name="fake_master_heading" doc="Static heading for master." default="0"/>
     <arg name="joystick_type" doc="Supported types: [disabled, f310, f710, keyboard, switchpro]"/>
     <arg name="external_gps" doc="Indicate presence of external gps" default="false"/>
     <arg name="rviz" doc="Show rviz if true" default="false"/>
@@ -49,14 +49,14 @@
         </group>
 
         <!-- Fake waterlinked node. -->
-        <node if="$(eval arg('navigation_aid') == 'fake')" type="fake_waterlinked.py" pkg="waterlinked_gps" name="fake_waterlinked" output="screen">
+        <node if="$(eval arg('navigation_aid') == 'fake')" type="fake_waterlinked" pkg="waterlinked_gps" name="fake_waterlinked" output="screen">
             <remap from="waterlinked/home" to="mavros/home_position/set"/>
             <param name="heading" value="$(arg fake_master_heading)"/>
             <rosparam param="datum" subst_value="true">$(arg fake_master_datum)</rosparam>
         </node>
 
         <!-- Waterlinked GPS node. -->
-        <node if="$(eval arg('navigation_aid') == 'waterlinked')" pkg="waterlinked_gps" type="waterlinked_gps_node.py" name="waterlinked_gps_node" output="screen">
+        <node if="$(eval arg('navigation_aid') == 'waterlinked')" pkg="waterlinked_gps" type="waterlinked_gps_node" name="waterlinked_gps_node" output="screen">
             <remap from="waterlinked/home" to="mavros/home_position/set"/>
             <remap from="waterlinked/external/depth" to="mavros/global_position/rel_alt"/>
             <param name="ip" value="$(arg waterlinked_ip)"/>
@@ -70,7 +70,7 @@
         </group>
 
         <!-- Guidance Node -->
-        <node pkg="bluerov2_guidance" type="los_guidance.py" name="guidance">
+        <node pkg="bluerov2_guidance" type="los_guidance" name="guidance">
             <remap from="guidance/autopilot" to="autopilot/setpoint"/>
         </node>
 
@@ -112,24 +112,27 @@
             <include file="$(find bluerov2_hmi)/launch/mapviz.launch"/>
         </group>
 
-        <!-- Image Handling and display-->
-        <node pkg="image_transport" type="republish" name="local_image_pub" args="compressed in:=nose_cam/image_raw raw out:=nose_cam_repub/image_raw"/>
-        <!-- HUD Overlay -->
-        <node pkg="bluerov2_hmi" type="hud_overlay_node.py" name="hud_overlay_node">
-            <remap from="image_in/camera_info" to="nose_cam_repub/camera_info"/>
-            <remap from="image_in/image_raw" to="nose_cam_repub/image_raw"/>
-            <remap from="image_out/image_raw" to="nose_cam_repub/image_annotated_raw"/>
-        </node>
-        <!-- Image display -->
-        <node pkg="image_view" type="image_view" name="pilot_viewer">
-            <remap from="image" to="nose_cam_repub/image_annoted_raw"/>
-            <param name="image_transport" value="raw"/>
-        </node>
+        <group unless="$(arg sitl)">
+            <!-- Image Handling and display-->
+            <node pkg="image_transport" type="republish" name="local_image_pub" args="compressed in:=nose_cam/image_raw out:=nose_cam_repub/image_raw"/>
+            <!-- HUD Overlay -->
+            <node pkg="bluerov2_hmi" type="hud_overlay_node" name="hud_overlay_node">
+                <remap from="image_in/camera_info" to="nose_cam_repub/camera_info"/>
+                <remap from="image_in/image_raw" to="nose_cam_repub/image_raw"/>
+                <remap from="image_out/image_raw" to="nose_cam_repub/image_annotated_raw"/>
+            </node>
+            <!-- Image display -->
+            <node pkg="image_view" type="image_view" name="pilot_viewer">
+                <remap from="image" to="nose_cam_repub/image_annoted_raw"/>
+                <param name="image_transport" value="raw"/>
+            </node>
+        </group>
         <!-- Publish position of camera on tf via Joint State -->
-        <node pkg="bluerov2_navigation" type="camera_tf.py" name="camera_tf_node">
+        <node pkg="bluerov2_navigation" type="camera_tf" name="camera_tf_node">
 
         </node>
-
+        <!-- RQT Plugin to Set Autopilot -->
+        <node pkg="bluerov2_hmi" type="autopilot_interface" name="autopilot_setter"/>
 
     </group>
 

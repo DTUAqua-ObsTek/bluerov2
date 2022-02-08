@@ -5,7 +5,7 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['bluerov2_navigation'],
+    packages=['bluerov2_navigation', 'bluerov2_navigation.helpers'],
     package_dir={'': 'src'})
 
 setup(**setup_args)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-INSTALL_PATH=@1
+INSTALL_PATH=$HOME/rov_ros_ws
 
 echo "Installing ROS..."
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'

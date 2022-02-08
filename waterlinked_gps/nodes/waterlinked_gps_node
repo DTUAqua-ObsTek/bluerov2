@@ -40,7 +40,7 @@ class WaterlinkedGPS:
         self._earth_frame_id = rospy.get_param("earth_frame_id", "ecef")
         self._map_frame_id = rospy.get_param("map_frame_id", "map")
         self._waterlinked_frame_id = rospy.get_param("waterlinked_frame_id", "waterlinked")
-        self._base_frame_id = rospy.get_param("base_fraame_id", "base_link")
+        self._base_frame_id = rospy.get_param("base_frame_id", "base_link")
         self._send_tf = rospy.get_param("~send_tf", True)
         self._geoid_path = rospy.get_param("geoid_path", "/usr/share/GeographicLib/geoids/egm96-5.pgm")
         self._master_covariance = None

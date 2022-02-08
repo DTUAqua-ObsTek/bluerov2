@@ -1,6 +1,6 @@
 <launch>
 <!--    <param name="map_frame_id" value="executive/map_frame_id"/>-->
-    <node pkg="bluerov2_executive" type="ardusub_executive_node.py" name="executive" output="screen">
+    <node pkg="bluerov2_executive" type="ardusub_executive_node" name="executive" output="screen">
         <remap from="gps" to="mavros/global_position/global"/>
         <remap from="odometry" to="mavros/local_position/local"/>
     </node>

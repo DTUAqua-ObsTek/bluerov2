@@ -1,5 +1,5 @@
 <launch>
-    <node pkg="bluerov2_control" type="controller_4dof.py" name="controller" output="screen">
+    <node pkg="bluerov2_control" type="controller_4dof" name="controller" output="screen">
         <param name="use_accel_fb" value="false"/>
         <rosparam command="load" file="$(find bluerov2_control)/params/controllers/cascade/inertial.yaml"/>
         <rosparam command="load" file="$(find bluerov2_control)/params/controllers/cascade/tunings_4dof.yaml"/>

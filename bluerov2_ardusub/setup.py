@@ -5,7 +5,7 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['bluerov2_ardusub'],
+    packages=['bluerov2_ardusub', 'bluerov2_ardusub.enums'],
     package_dir={'': 'src'})
 
 setup(**setup_args)

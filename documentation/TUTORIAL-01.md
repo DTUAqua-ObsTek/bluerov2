@@ -1,100 +1,121 @@
-# UUV Simulator Tutorial #
+# Tutorial 1: Ardusub SITL #
 
-## Spawning a Basic World ##
+This tutorial depends on that you have completed installation of Ardusub, ROS Noetic Ninjemys, 
+the BlueROV2 packages and their dependencies installed on your system (Ubuntu 20.04). 
+If you haven't done this yet, please follow the [setup guide](../GETTING_STARTED.md).
 
-In a new terminal (ctrl + alt + t), start up a ROS server.
+## Launching the simulator ##
+
+In a new terminal (ctrl + alt + t), launch the simulator.
+
+`sim_vehicle.py -v ArduSub -f vectored --map --console -l 55.774255,12.492027,-1,175`
+
+A quick explanation of the optional arguments provided:
+
+**-v Ardusub**: tells the SITL simulator to use the Ardusub binaries.
+
+**-f vectored**: use the 6 motored vectored frame Bluerov2 model.
+
+**--map**: show a reference map.
+
+**--console**: show a console for controlling aspects of the simulator and the proxy service used for mavlink communications.
+
+**-l 55.774255,12.492027,-1,175**: spawn the ROV at latitude 61.442, longitude 10.4242, height above sea level -1 m, and at compass heading 175 (N CW+)
+
+If you want more options, run `sim_vehicle.py -h` to get an extensive description of settings that can be parsed by the simulator.
+
+You should now have something like this:
+
+<p align="center">
+  <img src="imgs/ardusub_sitl_map.png" alt="Ardusub spawned in Lyngby Lake.">
+</p>
+
+## Launching the BlueROV2 package stack in SITL mode ##
+
+The bluerov2 ROS stack was developed to provide easily extensible offboard control options to the bluerov2.
+Since the flight controller unit (FCU) is programmed with a version of Ardusub (currently 4.0.3),
+it is also compatible with the SITL binaries provided within the ardupilot ecosystem.
+
+First, in a new terminal (ctrl + alt + t) launch a ROS master node:
 
 `roscore`
 
-In a new terminal (ctrl + shift + t), launch an underwater world.
+Then, in a tabbed terminal (ctrl + shift + t) launch the bluerov2 controller stack:
 
-`roslaunch uuv_gazebo_worlds herkules_ship_wreck.launch gui:=false paused:=true`
+`roslaunch bluerov2_bringup bringup_bluerov2.launch sitl:=true navigation_aid:=fake joystick_type:=keyboard rviz:=true mapviz:=true dev_mode:=true`
 
-Hint: you can add `--ros-args` to the command to get a list of arguments available.
+**Hint**: you can add `--ros-args` to the roslaunch command to get a list of arguments available.
 
-Note: if you omit the gui argument, or set it to true, then the gazebo frontend GUI will launch and display the world.
+Alternative, enter `rosed bluerov2_bringup bringup_bluerov2.launch` to see the entire launch file contents.
 
-Note: the paused argument sets the physics simulator to freeze (nothing is published), it can then be unfrozen when you're ready.
+A lot of windows will launch, including a terminal with a joystick emulator that reads keyboard presses.
 
-In a new terminal, explore the topics currently available.
+**Activity**: Play around with these controls to control the ROV on the map.
 
-`rostopic list`
+## Explanation of Windows ##
 
-**/hydrodynamics/current_velocity**: the world referenced current.
+**Keyboard emulator window**: Select this window to have your keyboard presses forwarded to the ROV as joystick commands.
 
-**/gazebo/model_states**: pose and velocity of any models in the simulation.
+<p align="center">
+  <img src="imgs/keyboard_emulator.png" alt="Keyboard emulator window.">
+</p>
 
-**/gazebo/link_states**: pose and velocity of any links in the simulation.
+**mapviz window**: [mapviz](https://swri-robotics.github.io/mapviz/) mapping visualization tool, handy for fieldwork. 
 
-## Spawning a BlueROV2 ##
+<p align="center">
+  <img src="imgs/mapviz_window.png" alt="Geographic information window.">
+</p>
 
-With a world active, you can now simulate a vehicle in it. We will upload the BlueROV2 into the world at 40 m depth.
+**RViz window**: ROS visualization tool, can visualize all sorts of robot related data (sensors, joints, reference frames, etc.)
 
-`roslaunch bluerov2_description upload_bluerov2.launch z:=-50 x:=-15`
+<p align="center">
+  <img src="imgs/rviz_window.png" alt="ROS visualization window.">
+</p>
 
-Hint: If you are viewing with Gazebo, you can right click on Models->bluerov2 in the left panel and click "move to", or "follow" to find the BlueROV2.
+**Autopilot interface**: A simple GUI to send autopilot cruise, heading and height control commands to the ROV.
 
-## Unpausing the simulation ##
+<p align="center">
+  <img src="imgs/autopilot_interface.png" alt="Autopilot Interface">
+</p>
 
-First, pull up an RVIZ window:
+**Reconfigure window**: Dynamic reconfigure interface used to adjust parameters of nodes.
 
-`rosrun rviz rviz -d $(rospack find bluerov2_gazebo)/rviz/bluerov2.rviz`
+<p align="center">
+  <img src="imgs/reconfigure_window.png" alt="Dynamic reconfigure window.">
+</p>
 
-Once rviz starts, check the box marked Image on the left panel.
+**Publisher window**: Tool to publish messages to topics.
 
-Next, unpause the simulation:
+<p align="center">
+  <img src="imgs/publisher_window.png" alt="Topic publishing tool.">
+</p>
 
-`rosservice call /gazebo/unpause_physics`
+**Service Caller window**: Tool to call remote services offered by nodes.
 
-You should see the camera view of the ROV in RVIZ, and the ROV starting to rise in the gazebo view. This makes sense as the BlueROV2 is positively buoyant!
+<p align="center">
+  <img src="imgs/service_caller_window.png" alt="Service caller window.">
+</p>
 
-### Activity ###
+**Activity**
+
+1. Arm the ROV via the service caller and the /bluerov2/mavros/cmd/arming service.
+2. Set the control mode of the ROV into IDLE mode via the service caller and the /bluerov2/controller/set_controller_state service.
+   **Hint**: See the description of the service with `rossrv show bluerov2_msgs/SetControllerState`
+3. Publish to the /bluerov2/wrench/target topic with a geometry_msgs/WrenchStamped message to give force commands to the vehicle.
+**Hint**: You can input arbitrary python commands from the math and time libraries and an incrementing variable **i** to make your
+   commands vary with time.
+
+**Activity**
+
+1. Set the ROV into autopilot mode via the service caller and the /bluerov2/controller/set_controller_state service.
+2. Use either the publisher or the autopilot interface to send commands to the ROV.
+3. Adjust the parameters in /bluerov2/controller in the dynamic reconfigure window to manually tune the
+control response of the vehicle.
+   
+**Activity**
 
 1. Explore the topics provided in /bluerov2/...
-2. Run the rqt_publisher GUI: `rosrun rqt_publisher rqt_publisher`
-3. Play around with publishing thrust commands to /blurov2/thrusters/[0-5]/input topics
-4. See if you can get the ROV to turn on the spot, or hold depth.
-5. Apply 0.0 to the thrusters to stop them.
-
-
-## Configure BlueROV2 with Thruster Allocation Matrix Support ##
-
-At this point, you are able to publish thrust messages to each of the thrusters manually and cause the model to move. UUV simulator comes with support for a Thruster Allocation Matrix (TAM) manager that converts a commanded body-frame wrench (axial force + rotational moment) into individual thrusts, whose resultant should match the command (within limits).
-
-First, pause the simulation and delete the model.
-
-`rosservice call /gazebo/pause_physics`
-
-`rosservice call /gazebo/delete_model "model_name: 'bluerov2'"`
-
-If your gazebo GUI crashes at this point, you can restart it by running `gzclient` in a terminal.
-
-Next, upload another bluerov2 as you did before. Then run the following to launch the TAM manager:
-
-`roslaunch bluerov2_control start_thruster_manager.launch`
-
-Publish wrench topics to the /bluerov2/thruster_manager/input topic.
-
-### Activity ###
-
-Try to get the ROV to hold depth (view the /bluerov2/pose_gt/twist topic to get a velocity reference.)
-
-## Reconfiguring the BlueROV2 Payload ##
-
-The upload_bluerov2.launch script uses the information provided in `$(rospack find bluerov2_description)/robots/bluerov2_default.xacro` to spawn the vehicle with the correct payload and properties. This can be changed!
-
-The xacro layout allows for layers of objects to be loaded in, the robots/bluerov2_default.xacro simply specifies all of the files .xacro files to be used. 
-
-1. Pause and delete the BlueROV2.
-2. Open the `bluerov2_description/robots/bluerov2_default.xacro` and save as a new file `bluerov2_description/robots/bluerov2_down_facing_camera.xacro`.
-3. After the line `</xacro:bluerov2_base>`, paste in the following:
-	`<xacro:bluerov_camera namespace="" parent_link="$(arg namespace)/base_link" suffix="_down">
-    <origin xyz="0 0 -0.3" rpy="0 1.57 0"/>
-  </xacro:bluerov_camera>`
-4. Spawn the BlueROV2 with the new configuration:
-`roslaunch bluerov2_description upload_bluerov2.launch mode:=down_facing_camera`
-
-### For your own work ###
-
-Extra sensors are defined in `$(rospack find bluerov2_description)/urdf/sensors.xacro`, `$(rospack find bluerov2_description)/urdf/snippets.xacro`, which inherit from (among other places) `$(rospack find uuv_sensor_ros_plugins)/urdf`. Try modifying and using the bluerov_altimeter snippet defined in `$(rospack find bluerov2_description)/urdf/snippets.xacro` to spawn a new robot `bluerov2_altimeter.xacro` that has a downward facing rangefinder like in the real model.
-
+2. Explore other control modes.
+3. If you have a USB joystick, you can make your own joystick mapping. See `rosed bluerov2_control switchpro_mappings.yaml`
+to see an example. **Note**: You will need to add a symbolic link to your joystick in order to get it registered on the
+joy_node. See /etc/udev/99-joystick.rules for examples of automatically generating the symbolic link when you plug the joystick in.

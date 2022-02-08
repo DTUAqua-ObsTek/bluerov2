@@ -6,9 +6,9 @@
 
 	<!-- Recorder Nodes -->
 	<!-- Record the compressed image data from the onboard camera -->
-	<node pkg="rosbag" type="record" name="rosbag_record_cam" args="-o $(arg bag_dir)/video --split --size=3000 /bluerov2/nose_cam/camera_info /bluerov2/nose_cam/image_raw/compressed" output="log"/>
+	<node pkg="rosbag" type="record" name="rosbag_record_cam" args="-o $(arg bag_dir)/video --split --size=3000 /bluerov2/nose_cam_repub/camera_info /bluerov2/nose_cam_repub/image_raw/compressed" output="log"/>
 
 	<!-- Record all data except camera feeds -->
-	<node pkg="rosbag" type="record" name="flight_data_recorder" args="-o $(arg bag_dir)/flightdata --split --size=3000 -e '/bluerov2/(.*)|/tf|/tf_static' -x '/bluerov2/mavlink/(.*)|/bluerov2/nose_cam/(.*)|/bluerov2/image_view_node/(.*)|/bluerov2/image_out/(.*)'" output="log"/>
+	<node pkg="rosbag" type="record" name="flight_data_recorder" args="-o $(arg bag_dir)/flightdata --split --size=3000 -e '/bluerov2/(.*)|/tf|/tf_static' -x '/bluerov2/mavlink/(.*)|/bluerov2/nose_cam/(.*)|/bluerov2/nose_cam_repub/(.*)|/bluerov2/image_out/(.*)'" output="log"/>
 
 </launch>

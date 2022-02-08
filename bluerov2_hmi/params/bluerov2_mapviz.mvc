@@ -10,8 +10,8 @@ show_capture_tools: true
 window_width: 1848
 window_height: 1016
 view_scale: 1.209999
-offset_x: 30.46772
-offset_y: -304.8638
+offset_x: 1757.016
+offset_y: 88.9158
 use_latest_transforms: true
 background: "#a0a0a4"
 displays:
@@ -97,7 +97,7 @@ displays:
   - type: mapviz_plugins/coordinate_picker
     name: new display
     config:
-      visible: true
+      visible: false
       collapsed: true
       frame: bluerov2/map_ned
       copy: false
@@ -151,3 +151,16 @@ displays:
       offset_x: 110
       offset_y: 60
       postfix_text: " deg (CoG)"
+  - type: mapviz_plugins/float
+    name: new display
+    config:
+      visible: true
+      collapsed: true
+      font: DejaVu Sans,24,-1,5,50,0,0,0,0,0
+      color: "#000000"
+      topic: /bluerov2/guidance/depth
+      anchor: top left
+      units: pixels
+      offset_x: 110
+      offset_y: 90
+      postfix_text: " m (Depth)"

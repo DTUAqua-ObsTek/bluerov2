@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Name[en_US]=Start Recording
+Comment=Start Recording
+Exec=${CMAKE_INSTALL_PREFIX}/lib/${PROJECT_NAME}/start_recording.sh
+Type=Application
+Icon=${DESKTOP_ICON_DIR}/record.png
+StartupNotify=true
