@@ -14,6 +14,7 @@ sudo apt install python3-rosdep python3-rosinstall python3-rosinstall-generator 
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 sudo rosdep init
 rosdep update
+sudo /opt/ros/noetic/lib/mavros/install_geographiclib_datasets.sh 
 echo "ROS Installed."
 
 echo "Setting up bluerov2 ROS workspace..."
@@ -64,4 +65,6 @@ fi
 
 # Unlisted 3rd party python libraries
 python3 -m pip install requests-futures bluerobotics-ping pymavlink mavproxy
+python3 -m pip install --upgrade scipy
 
+echo "BlueROV2 stack installed"
