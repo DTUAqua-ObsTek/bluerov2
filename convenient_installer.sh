@@ -63,5 +63,5 @@ if [ ! -d "~/ardupilot" ]; then
 fi
 
 # Unlisted 3rd party python libraries
-python3 -m pip install requests-futures bluerobotics-ping pymavlink
+python3 -m pip install requests-futures bluerobotics-ping pymavlink mavproxy
 
