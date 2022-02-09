@@ -11,6 +11,7 @@ sudo apt install ros-noetic-desktop-full
 grep -qxF 'source /opt/ros/noetic/setup.bash' ~/.bashrc || echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
 source /opt/ros/noetic/setup.bash
 sudo apt install python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential python3-catkin-tools python3-pip
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 sudo rosdep init
 rosdep update
 echo "ROS Installed."
