@@ -27,6 +27,7 @@ git submodule update
 cd $INSTALL_PATH
 catkin init
 rosdep install --from-paths src -i
+catkin config --merge-devel
 catkin build
 grep -qxF 'source $INSTALL_PATH/devel/setup.bash' ~/.bashrc || echo 'source $INSTALL_PATH/devel/setup.bash' >> ~/.bashrc
 
