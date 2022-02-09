@@ -52,7 +52,7 @@ cd ~
 if [ ! -d "~/ardupilot" ]; then
   echo "Installing ArduSub SITL"
   git clone https://github.com/ArduPilot/ardupilot.git -b ArduSub-stable
-  cd ardusub
+  cd ardupilot
   git submodule update --init --recursive
   sudo apt install python3-wxgtk4.0
   ./waf configure --board sitl
