@@ -29,7 +29,7 @@ catkin init
 rosdep install --from-paths src -i
 catkin config --merge-devel
 catkin build
-grep -qxF 'source $INSTALL_PATH/devel/setup.bash' ~/.bashrc || echo 'source $INSTALL_PATH/devel/setup.bash' >> ~/.bashrc
+grep -qxF "source $INSTALL_PATH/devel/setup.bash" ~/.bashrc || echo "source $INSTALL_PATH/devel/setup.bash" >> ~/.bashrc
 
 echo "bluerov2 workspace ready."
 
