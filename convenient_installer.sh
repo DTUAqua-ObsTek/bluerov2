@@ -58,6 +58,7 @@ if [ ! -d "~/ardupilot" ]; then
   sudo apt install python3-wxgtk4.0
   ./waf configure --board sitl
   ./waf sub
+  grep -qxF "export PATH=$PATH:$HOME/ardupilot/Tools/autotest" ~/.bashrc || echo "export PATH=$PATH:$HOME/ardupilot/Tools/autotest" >> ~/.bashrc
   echo "Ardusub Installed."
 fi
 
