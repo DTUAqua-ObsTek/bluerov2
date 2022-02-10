@@ -32,6 +32,9 @@ rosdep install --from-paths src -i
 catkin config --merge-devel
 catkin build
 grep -qxF "source $INSTALL_PATH/devel/setup.bash" ~/.bashrc || echo "source $INSTALL_PATH/devel/setup.bash" >> ~/.bashrc
+source $INSTALL_PATH/devel/setup.bash
+roscd bluerov2_bringup
+sudo cp udev/99-joysticks.rules /etc/udev/rules.d/.
 
 echo "bluerov2 workspace ready."
 
