@@ -10,7 +10,7 @@ sudo apt update
 sudo apt install ros-noetic-desktop-full
 grep -qxF 'source /opt/ros/noetic/setup.bash' ~/.bashrc || echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
 source /opt/ros/noetic/setup.bash
-sudo apt install python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential python3-catkin-tools python3-pip python3-future python3-pymavlink
+sudo apt install python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential python3-catkin-tools python3-pip python3-future git
 sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 sudo rosdep init
 rosdep update
@@ -54,6 +54,7 @@ fi
 echo "QGroundControl Installed."
 
 cd ~
+python3 -m pip install pymavlink mavproxy
 if [ ! -d "~/ardupilot" ]; then
   echo "Installing ArduSub SITL"
   git clone https://github.com/ArduPilot/ardupilot.git -b ArduSub-stable
@@ -67,7 +68,7 @@ if [ ! -d "~/ardupilot" ]; then
 fi
 
 # Unlisted 3rd party python libraries
-python3 -m pip install requests-futures bluerobotics-ping pymavlink mavproxy
+python3 -m pip install requests-futures bluerobotics-ping
 python3 -m pip install --upgrade scipy
 
 echo "BlueROV2 stack installed"
