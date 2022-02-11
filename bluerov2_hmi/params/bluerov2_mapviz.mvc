@@ -9,9 +9,9 @@ show_status_bar: true
 show_capture_tools: true
 window_width: 1848
 window_height: 1016
-view_scale: 1.209999
-offset_x: 1757.016
-offset_y: 88.9158
+view_scale: 0.6450498
+offset_x: -54.49171
+offset_y: -21.38357
 use_latest_transforms: true
 background: "#a0a0a4"
 displays:
@@ -85,13 +85,13 @@ displays:
     config:
       visible: true
       collapsed: true
-      topic: /image_publisher_1643707386811305779/image_raw
+      topic: /bluerov2/nose_cam/image_raw
       anchor: bottom right
       units: pixels
       offset_x: 0
       offset_y: 0
       width: 500
-      height: 500
+      height: 281
       keep_ratio: true
       image_transport: default
   - type: mapviz_plugins/coordinate_picker
