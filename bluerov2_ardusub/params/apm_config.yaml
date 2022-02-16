@@ -136,14 +136,23 @@ mission:
 ## Currently available orientations:
 #    Check http://wiki.ros.org/mavros/Enumerations
 ##
-distance_sensor:
-  rangefinder_pub:
-    id: 0
-    frame_id: "bluerov2/altimeter"
-    orientation: PITCH_270 # sent by FCU
-    field_of_view: 0.5239  # for ping1d sensor
-    send_tf: false
-    sensor_position: {x:  0.0, y:  0.0, z:  -0.1}
+#distance_sensor:
+##  rangefinder_pub:
+##    id: 0
+##    frame_id: "bluerov2/altimeter"
+##    orientation: PITCH_270 # sent by FCU
+##    field_of_view: 0.5239  # for ping1d sensor
+##    send_tf: false
+##    sensor_position: {x:  0.0, y:  0.0, z:  -0.1}
+#  rangefinder_sub:
+#    subscriber: true
+#    id: 0
+#    orientation: PITCH_270
+distance_sensor:            #<== plugin name
+  rangefinder_sub:          #<== ROS subscriber name
+    subscriber: true        #<== set subscriber type
+    id: 0                   #<== sensor instance number must match the one set on ArduPilot side
+    orientation: PITCH_270  #<== only that orientation are supported by Copter 3.4+
 
 # image_pub
 image:
