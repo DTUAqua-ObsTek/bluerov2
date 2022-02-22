@@ -166,6 +166,7 @@ class MavrosInterface:
         self._controller_state = ControllerState.OFF
         req = SetModeRequest()
         req.base_mode = req.MAV_MODE_STABILIZE_ARMED
+        req.base_mode = req.MAV_MODE_MANUAL_ARMED
         self._set_fcu_mode.wait_for_service()
         res = self._set_fcu_mode.call(req)
 
