@@ -30,7 +30,7 @@ Append the following lines to your ~/.bashrc file:
 
 ```
 export ROS_MASTER_URI=http://192.168.2.2:11311
-export ROS_IP=$(hostname).local
+export ROS_HOSTNAME=$(hostname).local
 ```
 
 Then source your modified ~/.bashrc file.
