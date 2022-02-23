@@ -20,8 +20,8 @@ A Wi-Fi router has been included to allow all of us to connect to the ROV's netw
 Connection details:
 
 ```
-ssid: dtuaqua-obstek
-pass: dtuaqua-obstek
+ssid: aqua_obstek
+pass: aqua_obstek
 ```
 
 #### Step two: Modify your ~/.bashrc file ####
@@ -30,7 +30,7 @@ Append the following lines to your ~/.bashrc file:
 
 ```
 export ROS_MASTER_URI=http://192.168.2.2:11311
-export ROS_IP=$(hostname -I)
+export ROS_IP=$(hostname).local
 ```
 
 Then source your modified ~/.bashrc file.
@@ -54,11 +54,10 @@ topics relayed from the FCU via MAVROS. We are interested in
 `/bluerov2/mavros/imu/data` and `/bluerov2/mavros/imu/raw` which provide
 orientation, rotational velocity and acceleration measurements in filtered form and raw
 sensor form respectively.
-You should also see topics prepended with `/vrpn`. These topics contain pose
-estimates of rigid body constellations detected within the OptiTrack system.
-The rigid body asset we are interested in is `/vrpn/galatheatower/pose`. This will
-provide absolute position estimates as well as a rotation from the optitrack reference frame
-to the vehicle's body frame. These measurements (and derivatives / integrals), will
+You should also see the `/bluerov2/mavros/mocap/pose` topic. This topic contains pose
+estimates of rigid body constellations detected within the OptiTrack system. This will
+provide absolute position estimates as well as a rotation from the optitrack reference frame,
+`bluerov2/map` to the vehicle's body frame (oriented ENU to FLU). These measurements (and derivatives / integrals), will
 compose the state measurements of the vehicle motion in Surge, Sway, Heave, Roll, Pitch & Yaw,
 in acceleration, velocity and position.
 
@@ -115,7 +114,7 @@ sending the commands to ROV. It should hopefully start doing something!
 
 Make use of the `rosbag record` node to log the data onto your computer. As an example:
 
-`rosbag record --duration=1m --output-name=rov1_sys_ident.bag /bluerov2/mavros/imu/data /bluerov2/mavros/rc/out /bluerov2/wrench/target /vrpn/galathea/pose`
+`rosbag record --duration=1m --output-name=rov1_sys_ident.bag /bluerov2/mavros/imu/data /bluerov2/mavros/rc/out /bluerov2/wrench/target /bluerov2/mavros/mocap/pose`
 
 This will record the filtered IMU data, PWM signals to the motors, commanded forces and torques, and OptiTrack position
 and orientation measurements for 1 minute into a .bag file located in a file called rov1_sys_ident.bag that is placed within
