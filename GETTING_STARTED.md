@@ -13,7 +13,7 @@ You may skip this step if Ubuntu 20.04 is already installed on your machine.
 
 Run the script [convenient_installer.sh](convenient_installer.sh):
 
-`./convenient_install.sh`
+`./convenient_installer.sh`
 
 **Note**: If the installer fails for some reason (like a missing dependency), please let me know.
 
@@ -73,7 +73,7 @@ source ~/.bashrc
 
 Next, make sure to install the support libraries for MAVROS:
 
-`sudo /opt/ros/noetic/lib/mavros/install_geogrpahiclib_datasets.sh`
+`sudo /opt/ros/noetic/lib/mavros/install_geogrpahicallib_datasets.sh`
 
 ## Install Ardusub Software-In-The-Loop ##
 
