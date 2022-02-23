@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="sitl" default="false" doc="Use simulator if true, otherwise try to connect to vehicle."/>
-    <arg name="navigation_aid" doc="Choose between fake GPS, waterlinked GPS, or microranger 2 USBL: [fake, waterlinked, microranger2]"/>
+    <arg name="navigation_aid" doc="Choose between fake GPS, waterlinked GPS, or microranger 2 USBL: [disabled, fake, waterlinked, microranger2]"/>
 
     <arg name="waterlinked_ip" doc="IP waterlinked webserver is located on." default="192.168.2.94"/>
     <arg name="waterlinked_port" doc="Port waterlinked webserver is located on." default="80"/>
