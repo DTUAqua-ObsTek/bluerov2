@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<launch>
+    <node name="gscam_udp_source" pkg="gscam" type="gscam" output="screen">
+    <param name="camera_name" value="nose_cam"/>
+    <param name="camera_info_url" value="package://bluerov2_ardusub/calibrations/nose_cam.yaml"/>
+    <param name="gscam_config" value="udpsrc port=5600 ! application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96 ! rtph264depay ! avdec_h264 ! queue ! videoconvert"/>
+    <param name="frame_id" value="bluerov2/nose_cam"/>
+    <param name="sync_sink" value="true"/>
+  </node>
+</launch>

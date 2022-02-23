@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="sitl" default="false" doc="Use simulator if true, otherwise try to connect to vehicle."/>
-    <arg name="navigation_aid" doc="Choose between fake GPS, waterlinked GPS, or microranger 2 USBL: [fake, waterlinked, microranger2]"/>
+    <arg name="navigation_aid" doc="Choose between fake GPS, waterlinked GPS, or microranger 2 USBL: [disabled, fake, waterlinked, microranger2]"/>
 
     <arg name="waterlinked_ip" doc="IP waterlinked webserver is located on." default="192.168.2.94"/>
     <arg name="waterlinked_port" doc="Port waterlinked webserver is located on." default="80"/>
@@ -113,18 +113,18 @@
         </group>
 
         <group unless="$(arg sitl)">
-            <!-- Image Handling and display-->
-            <node pkg="image_transport" type="republish" name="local_image_pub" args="compressed in:=nose_cam/image_raw out:=nose_cam_repub/image_raw"/>
+            <include file="$(find bluerov2_ardusub)/launch/gscam.launch"/>
             <!-- HUD Overlay -->
             <node pkg="bluerov2_hmi" type="hud_overlay_node" name="hud_overlay_node">
-                <remap from="image_in/camera_info" to="nose_cam_repub/camera_info"/>
-                <remap from="image_in/image_raw" to="nose_cam_repub/image_raw"/>
-                <remap from="image_out/image_raw" to="nose_cam_repub/image_annotated_raw"/>
+                <remap from="image_in/camera_info" to="nose_cam/camera_info"/>
+                <remap from="image_in/image_raw" to="nose_cam/image_raw"/>
+                <remap from="image_out/image_raw" to="hud/image_raw"/>
             </node>
             <!-- Image display -->
             <node pkg="image_view" type="image_view" name="pilot_viewer">
-                <remap from="image" to="nose_cam_repub/image_annoted_raw"/>
+                <remap from="image" to="hud/image_raw"/>
                 <param name="image_transport" value="raw"/>
+                <param name="autoresize" value="false"/>
             </node>
         </group>
         <!-- Publish position of camera on tf via Joint State -->
