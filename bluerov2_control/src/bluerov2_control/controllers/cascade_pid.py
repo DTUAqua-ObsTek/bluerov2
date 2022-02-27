@@ -197,10 +197,10 @@ class Cascade4DoF:
         # Set the vehicle to stabilize flight mode
         req = SetModeRequest()
         #req.base_mode = req.MAV_MODE_STABILIZE_ARMED
-        req.custom_mode = '0'  # STABILIZE FLIGHT MODE
-        req.custom_mode = "19"  # MANUAL FLIGHT MODE
+        #req.custom_mode = '0'  # STABILIZE FLIGHT MODE
+        #req.custom_mode = "19"  # MANUAL FLIGHT MODE
         # req.custom_mode = "0"  # STABILIZE FLIGHT MODE
-        # req.custom_mode = "2"    # ALT_HOLD FLIGHT MODE
+        req.custom_mode = "2"    # ALT_HOLD FLIGHT MODE
         self._configure_mavros.wait_for_service()
         res.success = self._configure_mavros(req).mode_sent
         self._control_depth = True

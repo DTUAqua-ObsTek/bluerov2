@@ -17,6 +17,7 @@
     <arg name="waterlinked_frame_id" doc="Frame name for the waterlinked nodes." default="waterlinked"/>
     <arg name="earth_frame_id" doc="Frame name for the earth reference." default="ecef"/>
     <arg name="dev_mode" doc="Bring up GUIs to tune PID and call services/publish to topics." default="false"/>
+    <arg name="vision" doc="Bringup camera nodes" default="false"/>
 
     <arg name="pi" value="3.14159265359"/>
     <arg name="halfpi" value="1.57079632679"/>
@@ -113,19 +114,21 @@
         </group>
 
         <group unless="$(arg sitl)">
-            <include file="$(find bluerov2_ardusub)/launch/gscam.launch"/>
-            <!-- HUD Overlay -->
-            <node pkg="bluerov2_hmi" type="hud_overlay_node" name="hud_overlay_node">
-                <remap from="image_in/camera_info" to="nose_cam/camera_info"/>
-                <remap from="image_in/image_raw" to="nose_cam/image_raw"/>
-                <remap from="image_out/image_raw" to="hud/image_raw"/>
-            </node>
-            <!-- Image display -->
-            <node pkg="image_view" type="image_view" name="pilot_viewer">
-                <remap from="image" to="hud/image_raw"/>
-                <param name="image_transport" value="raw"/>
-                <param name="autoresize" value="false"/>
-            </node>
+            <group if="$(arg vision)">
+                <include file="$(find bluerov2_ardusub)/launch/gscam.launch"/>
+                <!-- HUD Overlay -->
+                <node pkg="bluerov2_hmi" type="hud_overlay_node" name="hud_overlay_node">
+                    <remap from="image_in/camera_info" to="nose_cam/camera_info"/>
+                    <remap from="image_in/image_raw" to="nose_cam/image_raw"/>
+                    <remap from="image_out/image_raw" to="hud/image_raw"/>
+                </node>
+                <!-- Image display -->
+                <node pkg="image_view" type="image_view" name="pilot_viewer">
+                    <remap from="image" to="hud/image_raw"/>
+                    <param name="image_transport" value="raw"/>
+                    <param name="autoresize" value="false"/>
+                </node>
+            </group>
         </group>
         <!-- Publish position of camera on tf via Joint State -->
         <node pkg="bluerov2_navigation" type="camera_tf" name="camera_tf_node">
