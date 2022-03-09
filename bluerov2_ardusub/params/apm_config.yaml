@@ -169,21 +169,21 @@ fake_gps:
   gps_id: 4
   # origin (default: Zürich)
   geo_origin:
-    lat: 47.3667          # latitude [degrees]
-    lon: 8.5500           # longitude [degrees]
-    alt: 408.0            # altitude (height over the WGS-84 ellipsoid) [meters]
+    lat: 55.78457327260613            # latitude [degrees]
+    lon: 12.515103326771346           # longitude [degrees]
+    alt: 45.36                        # altitude (height over the WGS-84 ellipsoid) [meters]
   eph: 2.0
   epv: 2.0
   horiz_accuracy: 0.5
   vert_accuracy: 0.5
-  speed_accuracy: 0.0
-  satellites_visible: 6   # virtual number of visible satellites
-  fix_type: 3             # type of GPS fix (default: 3D)
+  speed_accuracy: 0.2
+  satellites_visible: 11   # virtual number of visible satellites
+  fix_type: 3              # type of GPS fix (default: 3D)
   tf:
     listen: false
     send: false           # send TF?
-    frame_id: "map"       # TF frame_id
-    child_frame_id: "fix" # TF child_frame_id
+    frame_id: "bluerov2/map"       # TF frame_id
+    child_frame_id: "bluerov2/base_link" # TF child_frame_id
     rate_limit: 10.0      # TF rate
   gps_rate: 5.0           # GPS data publishing rate
 

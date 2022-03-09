@@ -96,7 +96,7 @@ class LineOfSight:
                          self._heading_cb)  # Subscribe to the vehicle's Heading estimate
         rospy.Subscriber('mavros/global_position/raw/gps_vel', TwistStamped,
                          self._global_vel_cb)  # Subscribe to the vehicle's easting/northing speed
-        rospy.Subscriber('mavros/distance_sensor/range_pub', Range,
+        rospy.Subscriber('mavros/distance_sensor/rangefinder_pub', Range,
                          self._altitude_cb)  # Subscribe to the altitude estimation
 
     def _global_vel_cb(self, msg: TwistStamped):

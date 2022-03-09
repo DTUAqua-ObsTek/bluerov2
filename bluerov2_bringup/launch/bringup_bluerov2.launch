@@ -123,11 +123,12 @@
                     <remap from="image_out/image_raw" to="hud/image_raw"/>
                 </node>
                 <!-- Image display -->
-                <node pkg="image_view" type="image_view" name="pilot_viewer">
-                    <remap from="image" to="hud/image_raw"/>
-                    <param name="image_transport" value="raw"/>
-                    <param name="autoresize" value="false"/>
-                </node>
+<!--                <node pkg="image_view" type="image_view" name="pilot_viewer">-->
+<!--                    <remap from="image" to="hud/image_raw"/>-->
+<!--                    <param name="image_transport" value="raw"/>-->
+<!--                    <param name="autosize" value="true"/>-->
+<!--                </node>-->
+                <node pkg="rqt_image_view" type="rqt_image_view" name="pilot_viewer"/>
             </group>
         </group>
         <!-- Publish position of camera on tf via Joint State -->

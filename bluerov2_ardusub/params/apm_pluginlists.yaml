@@ -19,13 +19,11 @@ plugin_blacklist:
   - debug_value
   - esc_status
   - esc_telemetry
-  - fake_gps
   - gps_input
   - gps_rtk
   - gps_status
   - landing_target
   - log_transfer
-  - mocap_pose_estimate
   - mount_control
   - obstacle_distance
   - odom
@@ -46,6 +44,10 @@ plugin_blacklist:
 
 plugin_whitelist:
 # common
+  - distance_sensor
+  - fake_gps
+  - mocap_pose_estimate
+  - servo
   - command
   - global_position
   - hil
@@ -57,5 +59,3 @@ plugin_whitelist:
   - rc_io
   - sys_*
 # extras
-  - distance_sensor
-  - servo

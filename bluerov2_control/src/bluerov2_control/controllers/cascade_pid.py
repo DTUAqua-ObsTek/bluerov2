@@ -543,9 +543,11 @@ class Cascade4DoF:
         if not self._ready:
             return
         self._controller_state_pub.publish(self._controller_state)  # send the controller's state
-        if self._controller_state.state <= self._controller_state.IDLE:
+        if self._controller_state.state < self._controller_state.IDLE:
             self._latest_accel_sp = AccelStamped(Header(0, rospy.Time.now(), self._base_frame_id), None)
             self._calc_wrench()
+        elif self._controller_state.state == self._controller_state.IDLE:
+            pass
         elif self._controller_state.state == self._controller_state.ACCELTELEOP:
             self._calc_wrench()
         elif self._controller_state.state == self._controller_state.VELTELEOP:

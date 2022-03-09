@@ -92,6 +92,8 @@ class HudOverlay:
         # ---------- Annotation -------
         self._valid_annotation = AnnotationFormat()
         self._invalid_annotation = AnnotationFormat(color=(0, 0, 255))
+        # ---------- Publisher --------
+        self._pub = rospy.Publisher(self._image_out_topic, Image, queue_size=10)
         # ------- Subscribers -------
         self._image_in_sub = Subscriber(self._image_in_topic, Image)
         self._info_in_sub = Subscriber(self._info_in_topic, CameraInfo)
@@ -107,8 +109,6 @@ class HudOverlay:
         rospy.Subscriber(self._latlon_topic, NavSatFix, self._update_latlon)
         rospy.Subscriber(self._cog_topic, Float64, self._update_cog)
         rospy.Subscriber(self._sog_topic, Float64, self._update_sog)
-        # ---------- Publisher --------
-        self._pub = rospy.Publisher(self._image_out_topic, Image, queue_size=10)
 
 
     def _update_cog(self, msg: Float64):
@@ -181,20 +181,20 @@ class HudOverlay:
 
             # TOP CENTRAL BOX: IMPORTANT DATA (Altitude, Heading, Depth)
             st, w, h, b, g, r = self._gen_annotation("Alt: {:02.1f} m", (self._alt.range,), self._valid_annotation) if self._alt_mon.is_valid() else self._gen_annotation("Alt: {:02.1f} m", (self._alt.range,), self._invalid_annotation)
-            pos = (int(img.shape[1] - w/2), 10)
+            pos = (int(img.shape[1]/2 - w), 40)
             img = cv2.putText(img, st, pos, self._valid_annotation.font, self._fontsize, (b,g,r), self._valid_annotation.thickness, cv2.LINE_AA)
 
             st, w1, h1, b, g, r = self._gen_annotation("Hdg: {:03d} {}", (int(self._heading.data), self._degToCompass(self._heading.data)),
                                                      self._valid_annotation) if self._heading_mon.is_valid() else self._gen_annotation(
                 "Hdg: {:03d} {}", (self._heading.data, self._degToCompass(self._heading.data)), self._invalid_annotation)
-            pos = (int(img.shape[1] - w1/2) + w + 5, 10)
+            pos = (int(img.shape[1]/2 - w1/2) + w + 5, 40)
             img = cv2.putText(img, st, pos, self._valid_annotation.font, self._fontsize, (b,g,r), self._valid_annotation.thickness, cv2.LINE_AA)
 
             st, w2, h2, b, g, r = self._gen_annotation("Dpt: {:02.1f} m",
                                                        (self._depth.data,),
                                                        self._valid_annotation) if self._depth_mon.is_valid() else self._gen_annotation(
                 "Dpt: {:02.1f} m", (self._depth.data), self._invalid_annotation)
-            pos = (int(img.shape[1] - w2 / 2) + w1 + w2 + 10, 10)
+            pos = (int(img.shape[1]/2 - w2 / 2) + w1 + w2 + 10, 40)
             img = cv2.putText(img, st, pos, self._valid_annotation.font, self._fontsize, (b, g, r),
                               self._valid_annotation.thickness, cv2.LINE_AA)
 
