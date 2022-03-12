@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+
+
+import rospy
+from mavros import mavlink
+from mavros_msgs.msg import Mavlink
+from pymavlink.dialects.v20 import ardupilotmega as mavlink2
+from sensor_msgs.msg import FluidPressure, Temperature
+from std_msgs.msg import Float64
+
+class fifo:
+    def __init__(self):
+        self.buf = []
+    def write(self, data):
+        self.buf += data
+        return len(data)
+    def read(self):
+        return self.buf.pop(0)
+
+
+def handle_mavlink(msg: Mavlink, args):
+    density, atmosphere, fluid_message, temperature_message, depth_message, mav, fluid_pub, temp_pub, depth_pub = args
+    b = mavlink.convert_to_bytes(msg)
+    m2 = mav.decode(b)
+    if m2.id == 137:
+        fluid_message.header.stamp = rospy.Time.now()
+        fluid_message.fluid_pressure = m2.press_abs * 100
+        temperature_message.header.stamp = fluid_message.header.stamp
+        temperature_message.temperature = m2.temperature / 100
+        depth_message.data = (m2.press_abs * 100 - atmosphere) / (density * 9.81)
+        fluid_pub.publish(fluid_message)
+        temp_pub.publish(temperature_message)
+        depth_pub.publish(depth_message)
+
+
+def main():
+    rospy.init_node("depth_sensor")
+    density = rospy.get_param("~density", 1024)
+    atmosphere = rospy.get_param("~atmosphere", 101325)
+    mav = mavlink2.MAVLink(fifo())
+    fp = FluidPressure()
+    t = Temperature()
+    t.header.frame_id = rospy.get_param("~frame_id", "base_link")
+    t.variance = -1
+    fp.header.frame_id = rospy.get_param("~frame_id", "base_link")
+    fp.variance = -1
+    depth = Float64()
+    fluid_pub = rospy.Publisher("mavros/scaled_pressure2/fluid_pressure", FluidPressure, queue_size=10)
+    temp_pub = rospy.Publisher("mavros/scaled_pressure2/temperature", Temperature, queue_size=10)
+    depth_pub = rospy.Publisher("mavros/scaled_pressure2/depth", Float64, queue_size=10)
+    rospy.Subscriber("mavlink/from", Mavlink, handle_mavlink, (density, atmosphere, fp, t, depth, mav, fluid_pub, temp_pub, depth_pub))
+    rospy.spin()
+
+if __name__=="__main__":
+    main()

@@ -93,6 +93,7 @@ install(DIRECTORY
 
 catkin_install_python(PROGRAMS
   nodes/camera_tf
+  nodes/depth_sensor
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Mark executable scripts (Python etc.) for installation
