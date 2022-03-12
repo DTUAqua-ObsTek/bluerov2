@@ -19,7 +19,6 @@ from message_filters import ApproximateTimeSynchronizer, Subscriber
 from std_msgs.msg import Float64
 from mavros_msgs.msg import HomePosition, HilGPS
 import socket
-import json
 
 
 class WaterlinkedGPS:
@@ -209,7 +208,7 @@ class WaterlinkedGPS:
             rospy.logerr("Error setting vehicle imu: {} {}".format(r.status_code, r.text))
 
     def _forward_depth(self, msg: Float64):
-        self._depth_msg["depth"] = abs(msg.data) if msg.data < 0 else 0
+        self._depth_msg["depth"] = msg.data
         self._msl = msg.data
         try:
             r = self._session.put(self._depth_url, json=self._depth_msg, timeout=2)

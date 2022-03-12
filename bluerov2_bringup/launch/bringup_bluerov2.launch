@@ -56,10 +56,13 @@
             <rosparam param="datum" subst_value="true">$(arg fake_master_datum)</rosparam>
         </node>
 
+        <!-- Depth Sensor Node. -->
+        <node type="depth_sensor" pkg="bluerov2_navigation" name="depth_sensor"/>
+
         <!-- Waterlinked GPS node. -->
         <node if="$(eval arg('navigation_aid') == 'waterlinked')" pkg="waterlinked_gps" type="waterlinked_gps_node" name="waterlinked_gps_node" output="screen">
             <remap from="waterlinked/home" to="mavros/home_position/set"/>
-            <remap from="waterlinked/external/depth" to="mavros/global_position/rel_alt"/>
+            <remap from="waterlinked/external/depth" to="mavros/scaled_pressure2/depth"/>
             <param name="ip" value="$(arg waterlinked_ip)"/>
             <param name="port" value="$(arg waterlinked_port)"/>
         </node>
