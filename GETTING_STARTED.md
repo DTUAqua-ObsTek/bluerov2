@@ -73,7 +73,7 @@ source ~/.bashrc
 
 Next, make sure to install the support libraries for MAVROS:
 
-`sudo /opt/ros/noetic/lib/mavros/install_geogrpahicallib_datasets.sh`
+`sudo /opt/ros/noetic/lib/mavros/install_geographiclib_datasets.sh`
 
 ## Install Ardusub Software-In-The-Loop ##
 
