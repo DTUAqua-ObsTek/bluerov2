@@ -72,5 +72,9 @@ fi
 python3 -m pip install requests-futures bluerobotics-ping
 python3 -m pip install --upgrade scipy
 
+echo "Setting xserver display environment variables"
+echo "export DISPLAY=host.docker.internal:0.0" >> ~/.bashrc 
+echo "export LIBGL_ALWAYS_INDIRECT=0" >> ~/.bashrc
+
 source ~/.bashrc
 echo "BlueROV2 stack installed"
