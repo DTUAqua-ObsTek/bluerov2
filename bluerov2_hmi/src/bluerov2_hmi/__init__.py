@@ -60,7 +60,7 @@ class HudOverlay:
         self._latlon_topic = "mavros/global_position/global"
         self._sog_topic = "guidance/sog"
         self._cog_topic = "guidance/cog"
-        self._depth_topic = "mavros/global_position/rel_alt"
+        self._depth_topic = "mavros/scaled_pressure2/depth"
         # ------- MSG Defs ---------
         self._heading = Float64()
         self._sog = Float64()
@@ -166,7 +166,7 @@ class HudOverlay:
     def _annotate_img(self, image_msg: Image, info_msg: CameraInfo):
         if self._c % self._skip_frames == 0:
             # Convert image to opencv format
-            img = self._cvbridge.imgmsg_to_cv2(image_msg)
+            img = self._cvbridge.imgmsg_to_cv2(image_msg, desired_encoding="bgr8")
             # Construct pinhole camera model
             self._cam_model.fromCameraInfo(info_msg)
             # Get the frame origin projected into image coordiantes
